@@ -117,7 +117,10 @@ verified weight mount and exits if that mount is missing; it never downloads a m
 
 6. **Deploy** the release from the Tinfoil dashboard or CLI, and seed the two demo ciphers:
    `python client.py --enclave <host> --repo <org>/<repo> --token <RUN_TOKEN> seed`.
-7. **After the run:** `python client.py verify --run runs/<name>.json --save`, then
+7. **After the run:** `python client.py verify --run runs/<name>.json --save`. To walk the site
+   and record the demo before the video exists, `python build_site.py runs/<name>.json --draft`
+   builds the public page with every publish check except the video, kept out of search
+   engines. Then
    `python build_site.py runs/<name>.json --publish --video demo.mp4`, and deploy the `site/`
    folder. `--publish` refuses any run that isn't from an attested Tinfoil enclave or whose
    saved checks didn't all pass. Stop the container when you're done; it bills while running.

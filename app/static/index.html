@@ -5,6 +5,18 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Sealed Weights</title>
 <meta name="description" content="Several parties train one model inside a confidential GPU. No one sees the weights or anyone else's data. Every version of the weights is hashed, scored and signed inside the enclave.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Sealed Weights">
+<meta property="og:description" content="Several parties train one model inside a confidential GPU. No one sees the weights or anyone else's data. Every version of the weights is hashed, scored and signed inside the enclave.">
+<meta property="og:url" content="https://sealedweights.com/">
+<meta property="og:image" content="https://sealedweights.com/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Sealed Weights">
+<meta name="twitter:description" content="Several parties train one model inside a confidential GPU. No one sees the weights or anyone else's data.">
+<meta name="twitter:image" content="https://sealedweights.com/og.png">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230d1117'/%3E%3Crect x='9' y='14' width='14' height='11' rx='2' fill='%237cc4fa'/%3E%3Cpath d='M12 14v-3a4 4 0 0 1 8 0v3' fill='none' stroke='%237cc4fa' stroke-width='2.5'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
@@ -199,6 +211,8 @@ pre.wcmd { margin: 0; padding: 14px 16px; background: #0a0e14; border: 1px solid
 .ovlinks { display: flex; flex-wrap: wrap; gap: 8px 20px; font-size: 16px; font-weight: 500; }
 .ovlinks a { text-decoration: none; } .ovlinks a:hover { text-decoration: underline; }
 .ovmedia { flex: 1 1 420px; min-width: 0; }
+.ovintro.novideo .ovmedia { display: none; }
+.ovintro.novideo .ovtext { flex-basis: 100%; max-width: 860px; }
 .ovvideo { width: 100%; aspect-ratio: 16 / 9; border-radius: 12px; overflow: hidden; background: #0a0e14; border: 1px solid var(--line); }
 .ovvideo video { width: 100%; height: 100%; display: block; background: #000; }
 .ovph { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; color: var(--muted); font: 13px var(--mono); }
@@ -1229,7 +1243,7 @@ async function renderVerify() {
 function hwCard(st) {
   const v = RUN?.verification, e = runEnv(), host = RUN?.attestation?.enclave_host || (STATIC ? "" : location.host);
   const repo = e.repo || e.config_repo || "Andrew-Forman/sealed-weights", tag = e.release_tag;
-  const file = `runs/${(RUN && RUN.name) || "<name>"}.json`;
+  const file = STATIC ? CFG.run : `runs/${(RUN && RUN.name) || "<name>"}.json`;   // the site's file is run.json
   const head = (eye, off) => `<div class="top2"><div class="eye${off ? " off" : ""}">${esc(eye)}</div><h2>The enclave that produced it</h2></div>`;
   let h;
   if (v) {
@@ -1302,6 +1316,7 @@ async function boot() {
       el.innerHTML = `Built by Andrew Forman at LOCALHOST, on Tinfoil Containers. Working on confidential AI, or on training with data that can't be pooled? DM <a href="https://x.com/${CFG.xHandle}" target="_blank" rel="noopener">@${CFG.xHandle}</a> on X.`;
       el.hidden = false;
     });
+    if (CFG.draft && !CFG.video) document.querySelector(".ovintro").classList.add("novideo");   // draft: no video slot
     $("ovvideo").innerHTML = CFG.video
       ? `<video controls preload="metadata" playsinline src="${esc(CFG.video)}"${CFG.poster ? ` poster="${esc(CFG.poster)}"` : ""}></video>`
       : `<div class="ovph"><div class="disc"><svg width="24" height="24" viewBox="0 0 24 24" fill="#0d1117" aria-hidden="true"><path d="M8 5l11 7-11 7z"/></svg></div><div>Demo video</div></div>`;

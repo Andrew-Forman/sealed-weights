@@ -21,6 +21,37 @@ import client
 ROOT = Path(__file__).parent
 MARK = "<!--SEALED_STATIC-->"
 X_HANDLE = "andrew_forman"   # the X handle in the contact line on every tab; "" leaves the line out
+SITE_URL = "https://sealedweights.com"   # for link previews (og:image needs an absolute URL)
+
+# Security headers for Vercel. The page uses inline styles and scripts and Google Fonts; the
+# video and poster are served from the site itself; Vercel Web Analytics and Speed Insights load
+# from /_vercel/... (same origin) and report to vitals.vercel-insights.com.
+CSP = "; ".join([
+    "default-src 'self'",
+    "script-src 'self' 'unsafe-inline' https://va.vercel-scripts.com",
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    "font-src https://fonts.gstatic.com",
+    "img-src 'self' data:",
+    "media-src 'self'",
+    "connect-src 'self' https://vitals.vercel-insights.com",
+    "frame-ancestors 'none'",
+    "base-uri 'none'",
+    "form-action 'none'",
+    "object-src 'none'",
+])
+
+
+def vercel_config(indexable):
+    headers = [
+        {"key": "Content-Security-Policy", "value": CSP},
+        {"key": "X-Content-Type-Options", "value": "nosniff"},
+        {"key": "X-Frame-Options", "value": "DENY"},
+        {"key": "Referrer-Policy", "value": "strict-origin-when-cross-origin"},
+        {"key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=(), interest-cohort=()"},
+    ]
+    if not indexable:   # previews and drafts stay out of search engines
+        headers.append({"key": "X-Robots-Tag", "value": "noindex, nofollow"})
+    return {"headers": [{"source": "/(.*)", "headers": headers}]}
 
 
 def publish_problems(run):
@@ -83,11 +114,17 @@ def main():
     a.add_argument("run")
     a.add_argument("--publish", action="store_true",
                    help="build for the public site: only runs from an attested Tinfoil enclave")
+    a.add_argument("--draft", action="store_true",
+                   help="the publish build with every publish check except the video, kept out of "
+                        "search engines and without the preview label; for walking the site and "
+                        "recording the demo before the video exists")
     a.add_argument("--video")
     a.add_argument("--poster")
     a.add_argument("--repo", default="https://github.com/Andrew-Forman/sealed-weights")
     a.add_argument("--out", default="site")
     x = a.parse_args()
+    if x.publish and x.draft:
+        a.error("--publish and --draft are exclusive")
 
     run = json.load(open(x.run))
     client.assert_no_secrets(run)                 # never publish a token, salt, key or example
@@ -95,20 +132,22 @@ def main():
     if not client.verify(run["state"]):
         sys.exit("the run's ledger doesn't verify; not building")
 
-    if x.publish:
+    if x.publish or x.draft:
         problems = publish_problems(run)
         if not re.fullmatch(r"[A-Za-z0-9_]{1,15}", X_HANDLE or ""):
             problems.append("no X handle configured for the contact line (X_HANDLE in build_site.py)")
-        if not x.video:
+        if x.publish and not x.video:
             problems.append("no --video: the published Overview needs the demo video")
         if problems:
-            sys.exit("REFUSING TO PUBLISH this run:\n  - " + "\n  - ".join(problems))
+            sys.exit(f"REFUSING TO {'PUBLISH' if x.publish else 'BUILD THE DRAFT OF'} this run:\n  - "
+                     + "\n  - ".join(problems))
 
     out = Path(x.out)
     if out.exists():
         shutil.rmtree(out)
     out.mkdir(parents=True)
-    cfg = {"run": "run.json", "repo": x.repo, "name": Path(x.run).stem, "preview": not x.publish}
+    cfg = {"run": "run.json", "repo": x.repo, "name": Path(x.run).stem,
+           "preview": not (x.publish or x.draft), "draft": x.draft}
     if re.fullmatch(r"[A-Za-z0-9_]{1,15}", X_HANDLE or ""):
         cfg["xHandle"] = X_HANDLE
     shutil.copy(x.run, out / "run.json")
@@ -121,13 +160,19 @@ def main():
             shutil.copy(opt, out / dest)
             cfg[key] = dest
 
+    og = ROOT / "app" / "static" / "og.png"
+    if og.exists():   # link-preview image
+        shutil.copy(og, out / "og.png")
+    (out / "vercel.json").write_text(json.dumps(vercel_config(indexable=x.publish), indent=1))
+
     html = (ROOT / "app" / "static" / "index.html").read_text()
     assert MARK in html, "index.html is missing the static-config marker"
     tag = "<script>window.SEALED_STATIC = " + json.dumps(cfg).replace("<", "\\u003c") + ";</script>"
-    if not x.publish:   # keep previews out of search engines
+    if not x.publish:   # keep previews and drafts out of search engines
         tag += '\n<meta name="robots" content="noindex">'
     (out / "index.html").write_text(html.replace(MARK, tag, 1))
-    print(f"\nbuilt {out}/ ({'PUBLISH' if x.publish else 'preview, not for publishing'}): "
+    kind = "PUBLISH" if x.publish else "DRAFT, not indexed" if x.draft else "preview, not for publishing"
+    print(f"\nbuilt {out}/ ({kind}): "
           + ", ".join(sorted(p.name for p in out.iterdir())))
 
 
