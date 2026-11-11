@@ -21,11 +21,14 @@ and shows the saved hardware checks.
 2. **The key becomes private training data.** Inside the enclave, the key is turned into 300
    pairs of scrambled and plain messages to train on, and 40 more held out for scoring.
 3. **The model trains and is scored.** One shared LoRA adapter on Qwen2.5-1.5B-Instruct trains
-   on the new pairs. Every party's skill is then scored again on its held-out messages.
+   on the new pairs, plus a sample of each earlier party's pairs so it keeps the ciphers it
+   learned before. Every party's skill is then scored again on its held-out messages.
 4. **The new version is signed.** The record of the version (scores, a hash of the weights,
    the hash of the previous record) is signed with a key generated inside the enclave at boot.
 
-**Stays inside:** key, training pairs and weights.
+**Stays inside:** key, training pairs and weights. Training pairs are held in enclave memory
+until the run ends, so later steps can replay them; no route returns them, and a reset, a
+`/forget` or a stop clears them.
 
 **Comes out:** salted key commitment, scores, weights hash and signature.
 
@@ -102,7 +105,10 @@ verified weight mount and exits if that mount is missing; it never downloads a m
 3. **Tinfoil Release** (Actions tab, started by hand): measures the image and config, and
    publishes the release with a Sigstore attestation.
 4. **Secret.** Set `RUN_TOKEN` in the Tinfoil dashboard. It lets the operator seed, reset and
-   forget; it can't read keys, tokens or training data.
+   forget; it can't read keys, tokens or training data. A reset can set the run's learning
+   rate, epochs and replay size within bounds fixed in the code
+   (`client.py reset --lr 1e-4 --epochs 3 --replay 300`); the values used are signed into
+   every version.
 5. **Snapshot watcher.** Start it before deploying, so every version is saved as it's signed:
 
    ```bash

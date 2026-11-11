@@ -14,19 +14,20 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 
 OUT = "tests/fixtures/layout-sample.json"
 HP = {"epochs": 2, "lr": 0.0002, "lora_r": 16, "batch_size": 8, "n_train": 300, "n_eval": 40,
-      "acc_n": 40, "lora_targets": "q_proj,k_proj,v_proj,o_proj,gate_proj,up_proj,down_proj"}
+      "acc_n": 40, "lora_targets": "q_proj,k_proj,v_proj,o_proj,gate_proj,up_proj,down_proj",
+      "replay_per_skill": 150}
 # (name, kind, task, training seconds); version = position + 1
 PARTIES = [("demo-caesar", "caesar", "Caesar shift", 17.2), ("demo-atbash", "substitution", "scrambled alphabet", 18.1),
            ("maya", "caesar", "Caesar shift", 16.4), ("lena", "substitution", "scrambled alphabet", 17.0),
            ("rosa", "caesar", "Caesar shift", 16.8)]
-ACC = {   # one value per version v0..v5, None = not scored yet (from replay-reference.html)
-    "demo-caesar": [0, 0.83, 0.25, 0.20, 0.18, 0.15],
-    "demo-atbash": [None, 0, 1, 0.92, 0.80, 0.72],
-    "maya": [None, None, 0, 0.90, 0.60, 0.52],
-    "lena": [None, None, None, 0, 0.95, 0.72],
+ACC = {   # one value per version v0..v5, None = not scored yet. Made up, shaped like a run with
+          # replay: each cipher is learned, and earlier ones keep most of their score.
+    "demo-caesar": [0, 0.90, 0.88, 0.85, 0.85, 0.83],
+    "demo-atbash": [None, 0, 0.93, 0.90, 0.88, 0.88],
+    "maya": [None, None, 0, 0.90, 0.88, 0.85],
+    "lena": [None, None, None, 0, 0.95, 0.90],
     "rosa": [None, None, None, None, 0, 0.88],
-    "general": [1.0] * 6,
-    "composition": [None, 0, 0, 0, 0, 0],
+    "general": [0.97, 0.97, 0.95, 0.95, 0.93, 0.93],
 }
 LOSS = {k: [None if a is None else round(2.4 * (1 - a) + 0.05, 4) for a in v] for k, v in ACC.items()}
 MODEL = "Qwen/Qwen2.5-1.5B-Instruct"
@@ -56,8 +57,9 @@ def main():
             "version": v, "event": "train" if party else "base",
             "contributor": party[0] if party else None, "kind": party[1] if party else None,
             "commitment": commits[party[0]] if party else None, "n_train": HP["n_train"] if party else 0,
+            "n_replay": min(150, HP["n_train"]) * (v - 1) if party else 0,
             "base_model": MODEL, "weights_root": None, "release_tag": None, "device": "NVIDIA H200",
-            "hyperparams": HP, "train_steps": 76 if party else 0, "train_seconds": party[3] if party else 0.0,
+            "hyperparams": HP, "train_steps": (2 * -(-(HP["n_train"] + 150 * (v - 1)) // 8)) if party else 0, "train_seconds": party[3] if party else 0.0,
             "accuracy": {n: ACC[n][v] for n in sets}, "loss": {n: LOSS[n][v] for n in sets},
             "baseline_before": baseline,
             "weights_sha256": hashlib.sha256(f"layout-sample weights v{v}".encode()).hexdigest(),
@@ -74,9 +76,7 @@ def main():
                                  "status": "trained", "version": v, "error": None, "n_train": HP["n_train"],
                                  "n_eval": HP["n_eval"], "submitted_at": t0 + v * 60 - 30})
     sets = [{"id": p[0], "label": p[0], "kind": p[1], "task": p[2], "status": "trained"} for p in PARTIES]
-    sets += [{"id": "general", "label": "general", "kind": "general", "task": "everyday questions"},
-             {"id": "composition", "label": "demo-caesar+demo-atbash", "kind": "composition",
-              "task": "two ciphers stacked, never trained"}]
+    sets += [{"id": "general", "label": "general", "kind": "general", "task": "everyday questions"}]
     n = len(ledger)
     state = {"ready": True, "error": None, "device": "NVIDIA H200", "model_path": MODEL,
              "config_repo": ENV["config_repo"], "hyperparams": HP, "max_queue": 5, "public_key": pub,

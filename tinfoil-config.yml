@@ -40,7 +40,7 @@ containers:
       - MODEL_NAME: "Qwen2.5-1.5B-Instruct"   # display name only; MODEL_PATH is what loads
       - KEY_DIR: "/run/tinfoil/keys/scorecard"
       - CONFIG_REPO: "Andrew-Forman/sealed-weights"
-      - RELEASE_TAG: "v0.2.0"      # must equal the Tinfoil Release tag; shown in the UI and signed into v0
+      - RELEASE_TAG: "v0.3.0"      # must equal the Tinfoil Release tag; shown in the UI and signed into v0
       - HF_HUB_OFFLINE: "1"        # no egress: load only from the verified, mounted weights
       - TRANSFORMERS_OFFLINE: "1"
     secrets:

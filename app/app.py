@@ -10,7 +10,8 @@ Public
   POST /decode           {token, ciphertext, skill?} -> uses only the token owner's skill
 Operator (Authorization: Bearer $RUN_TOKEN)
   POST /admin/seed       the two demo ciphers (demo-caesar, demo-atbash)
-  POST /admin/reset      wipe everything, fresh adapter
+  POST /admin/reset      {lr?, epochs?, replay_per_skill?} wipe everything, fresh adapter; optional
+                         run settings within fixed bounds, signed into every row of the new run
   POST /contribute       {contributor, task, train, eval} raw dataset -> token. Operator only, kept
                          for experiments; the public demo seeds and accepts ciphers only.
   POST /forget           drop all contributor secrets, data and the adapter; keep the ledger
@@ -67,11 +68,12 @@ HP = {
     "n_train": env("N_TRAIN", 300, int),
     "n_eval": env("N_EVAL", 40, int),
     "acc_n": env("ACC_N", 0, int),   # 0 = score every eval item (n_eval)
+    "replay_per_skill": env("REPLAY_PER_SKILL", 150, int),   # earlier pairs replayed per contribution
     "lora_targets": env("LORA_TARGETS", "q_proj,k_proj,v_proj,o_proj,gate_proj,up_proj,down_proj"),
 }
 HP["acc_n"] = min(HP["acc_n"] or HP["n_eval"], HP["n_eval"])
 MAX_QUEUE = 5
-RESERVED = {"general", "composition", "base"}
+RESERVED = {"general", "base"}
 STATIC = Path(__file__).parent / "static" / "index.html"
 
 app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)  # only listed shim paths
@@ -98,7 +100,7 @@ CANCEL = threading.Event()
 GEN = threading.Lock()          # one interactive generation at a time
 
 S = {"skills": {}, "order": [], "queue": collections.deque(), "current": None,
-     "ledger": [], "acc": {}, "loss": {}, "composition": None, "progress": None}
+     "ledger": [], "acc": {}, "loss": {}, "progress": None}
 M = {"tok": None, "model": None, "ready": False, "error": None, "adapter": "default",
      "device_name": ""}
 
@@ -269,12 +271,10 @@ def _train(examples):
 
 # ---------- eval sets and the score matrix ----------
 def _eval_sets():
-    """Eval sets that exist right now: trained (or training) skills, general, composition."""
+    """Eval sets that exist right now: trained (or training) skills, and general."""
     sets = {n: S["skills"][n]._eval for n in S["order"]
             if S["skills"][n].status in ("training", "trained")}
     sets["general"] = GENERAL
-    if S["composition"]:
-        sets["composition"] = S["composition"]["eval"]
     return sets
 
 
@@ -290,18 +290,7 @@ def _score(name, examples, col):
     _cell(S["acc"], name, col, _accuracy(examples))
 
 
-def _maybe_build_composition():
-    if S["composition"]:
-        return
-    ciphers = [S["skills"][n] for n in S["order"] if S["skills"][n]._encrypt
-               and S["skills"][n].status in ("training", "trained")]
-    if len(ciphers) >= 2:
-        a, b = ciphers[:2]
-        S["composition"] = {"label": f"{a.name}+{b.name}", "eval": datagen.composition_eval(
-            a.name, a._encrypt, b.name, b._encrypt, HP["n_eval"], random.Random(secrets.randbits(64)))}
-
-
-def _record_version(event, contributor=None, train_seconds=0.0, train_steps=0, baseline=None):
+def _record_version(event, contributor=None, train_seconds=0.0, train_steps=0, baseline=None, n_replay=0):
     """Score every set on the current weights, sign the record, append it to the ledger.
     Each ledger row is one version of the shared weights: v0 = base model, then one per update."""
     col = len(S["ledger"])
@@ -318,6 +307,7 @@ def _record_version(event, contributor=None, train_seconds=0.0, train_steps=0, b
         "kind": sk.kind if sk else None,
         "commitment": sk.commitment if sk else None,   # sha256(salt + key), salt held by contributor
         "n_train": sk.n_train if sk else 0,
+        "n_replay": n_replay,            # earlier contributions' pairs replayed in this step
         "base_model": MODEL_PATH,
         "weights_root": WEIGHTS_ROOT,    # pinned base weights (dm-verity root hash)
         "release_tag": RELEASE_TAG or None,
@@ -348,8 +338,7 @@ def _train_step(name):
         sk.status = "training"
         S["current"] = name
     prev = len(S["ledger"]) - 1
-    _maybe_build_composition()
-    # "before": score sets that are new (this skill, maybe composition) on the current weights
+    # "before": score sets that are new (this skill) on the current weights
     baseline = {}
     for set_name, ex in _eval_sets().items():
         row = S["acc"].get(set_name, [])
@@ -358,12 +347,18 @@ def _train_step(name):
             _score(set_name, ex, prev)
             baseline[set_name] = {"accuracy": S["acc"][set_name][prev],
                                   "loss": S["loss"][set_name][prev]}
+    # replay: this contribution's pairs plus a sample from each earlier one, so earlier ciphers
+    # are kept. Earlier pairs stay in enclave memory for the run; no route returns them, and
+    # /forget, /admin/reset and a stop clear them.
+    earlier = [S["skills"][n]._train for n in S["order"]
+               if n != name and S["skills"][n].status == "trained" and S["skills"][n]._train]
+    examples = datagen.replay_mix(sk._train, earlier, HP["replay_per_skill"], random.Random(secrets.randbits(64)))
     t0 = time.time()
-    n = _train(sk._train)
+    n = _train(examples)
     secs = time.time() - t0
-    _record_version("train", name, secs, n, baseline)
+    _record_version("train", name, secs, n, baseline, n_replay=len(examples) - len(sk._train))
     with LOCK:
-        sk.status, sk.version, sk._train = "trained", len(S["ledger"]) - 1, None  # drop train data
+        sk.status, sk.version = "trained", len(S["ledger"]) - 1
 
 
 def _worker():
@@ -481,6 +476,12 @@ class Contribution(BaseModel):
     eval: list[Example]
 
 
+class ResetSettings(BaseModel):
+    lr: float | None = None
+    epochs: float | None = None
+    replay_per_skill: float | None = None
+
+
 class DecodeRequest(BaseModel):
     token: str
     ciphertext: str
@@ -557,9 +558,6 @@ def state():
                  "status": S["skills"][n].status} for n in S["order"] if n in S["acc"]]
         sets.append({"id": "general", "label": "general", "kind": "general",
                      "task": "everyday questions"})
-        if S["composition"]:
-            sets.append({"id": "composition", "label": S["composition"]["label"],
-                         "kind": "composition", "task": "two ciphers stacked, never trained"})
         n = len(S["ledger"])
         pad = lambda row: (row + [None] * n)[:n]
         return {
@@ -582,7 +580,7 @@ def state():
         }
 
 
-def _wipe(forget_only):
+def _wipe(forget_only, settings=None):
     """Cancel any running step and start a fresh adapter.
     forget_only: keep public records (ledger, scores, commitments), drop every secret.
     otherwise:   wipe everything."""
@@ -590,7 +588,6 @@ def _wipe(forget_only):
     with STEP:
         with LOCK:
             S["queue"].clear()
-            S["composition"] = None
             if forget_only:
                 for sk in S["skills"].values():
                     sk._train, sk._eval, sk._token_hash, sk._encrypt = None, [], "", None
@@ -600,6 +597,7 @@ def _wipe(forget_only):
                     S[k].clear()
                 S["order"].clear()
                 S["ledger"].clear()
+                HP.update(settings or {})   # run settings, fixed until the next reset
         _fresh_adapter()
         torch.cuda.empty_cache()
         CANCEL.clear()
@@ -607,12 +605,18 @@ def _wipe(forget_only):
 
 
 @app.post("/admin/reset")
-def admin_reset(authorization: str | None = Header(None)):
+def admin_reset(s: ResetSettings | None = None, authorization: str | None = Header(None)):
+    """Wipe everything and start a fresh v0, optionally with new run settings (within the
+    bounds in datagen.SETTING_BOUNDS). The settings are signed into every row of the new run."""
     _admin(authorization)
     if not M["ready"]:
         raise HTTPException(503, "model still loading")
-    _wipe(forget_only=False)
-    return {"reset": True}
+    try:
+        settings = datagen.check_settings(s.model_dump() if s else {})
+    except ValueError as e:
+        raise HTTPException(400, str(e))
+    _wipe(forget_only=False, settings=settings)
+    return {"reset": True, "settings": {k: HP[k] for k in datagen.SETTING_BOUNDS}}
 
 
 @app.post("/forget")

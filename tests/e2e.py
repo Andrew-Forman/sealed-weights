@@ -67,7 +67,10 @@ def main():
     check(post("/contribute", {"contributor": "x", "train": [{"prompt": "a", "completion": "b"}],
                                "eval": [{"prompt": "a", "completion": "b"}]})[0] == 401, "contribute without token -> 401")
     check(post("/generate", {"prompt": "hi"}, ADMIN)[0] in (404, 405), "no /generate route, even for the operator")
-    check(post("/admin/reset", h=ADMIN)[0] == 200, "reset with token")
+    check(post("/admin/reset", {"lr": 1.0}, ADMIN)[0] == 400, "reset rejects a setting out of bounds")
+    code, rs = post("/admin/reset", {"lr": 2e-4, "epochs": 2, "replay_per_skill": 150}, ADMIN)
+    check(code == 200 and rs["settings"] == {"lr": 2e-4, "epochs": 2, "replay_per_skill": 150}, "reset with settings")
+    check(get("/state")[1]["ledger"][0]["hyperparams"]["replay_per_skill"] == 150, "settings signed into v0")
     fresh_sha = get("/state")[1]["ledger"][0]["weights_sha256"]
 
     print("seed")
@@ -102,8 +105,8 @@ def main():
     check([r["version"] for r in st["ledger"]] == [0, 1, 2, 3], "versions are v0..v3")
     check(st["versions"] == ["base", "demo-caesar", "demo-atbash", "alice"], "version labels")
     ids = [s["id"] for s in st["sets"]]
-    check(ids == ["demo-caesar", "demo-atbash", "alice", "general", "composition"], f"sets {ids}")
-    check(st["sets"][-1]["label"] == "demo-caesar+demo-atbash", "composition = first two ciphers")
+    check(ids == ["demo-caesar", "demo-atbash", "alice", "general"], f"sets {ids}")
+    check([r["n_replay"] for r in st["ledger"]] == [0, 0, 150, 300], "each step replays 150 pairs per earlier cipher")
     for sid, row in st["accuracy"].items():
         check(len(row) == len(st["versions"]), f"accuracy row {sid} has one cell per version")
     check(st["accuracy"]["alice"][2] is not None, "alice has a 'before' value in the previous column")

@@ -48,6 +48,13 @@ def publish_problems(run):
         p.append("v0 has no pinned weights root (base model wasn't loaded from Tinfoil's verified weights)")
     if not env.get("release_tag"):
         p.append("no release tag")
+    acc, last = st.get("accuracy") or {}, len(ledger) - 1
+    low = [f"{s['id']} {acc[s['id']][last]:.2f}" for s in st.get("sets", [])
+           if s.get("kind") in ("caesar", "substitution") and last >= 0
+           and (acc.get(s["id"]) or [None] * (last + 1))[last] is not None and acc[s["id"]][last] < 0.50]
+    if low:
+        p.append("a cipher scores below 0.50 at the last version, so the model has not kept every "
+                 "party's cipher: " + ", ".join(low))
     v = run.get("verification")
     if not v:
         p.append("no saved verification (python client.py verify --run <file> --save)")

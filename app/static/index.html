@@ -507,7 +507,7 @@ pre.wcmd { margin: 0; padding: 14px 16px; background: #0a0e14; border: 1px solid
     <h2 id="kepth"></h2>
     <div class="legend"><span><i class="lbar"></i>Score at the last version</span><span><i class="ltick"></i>Its highest score at any version</span></div>
     <div class="krows" id="kept"></div>
-    <p class="ptext">Each contribution trains only on its own data, and that data is deleted afterwards. Earlier ciphers are never shown to the model again, so they fade as new ones are added.</p>
+    <p class="ptext">Each party's training examples stay inside the enclave for the length of the run, and a sample is replayed whenever a later party contributes. That is how the model keeps the ciphers it learned earlier.</p>
   </section>
 
   <p class="contact" hidden></p>
@@ -1024,7 +1024,8 @@ function renderOverview() {
       : ` Before a party contributed, the model decoded at most ${Math.round(hiBefore * 100)} in 100 of that party's test messages.`;
     sum += ` Afterwards it decoded at least ${Math.floor(lo * 100 + 1e-9)} in 100.`;
   }
-  if (drops.some((d) => d.hit)) sum += " Each new contribution also made the model somewhat worse at the ciphers it had learned earlier, because it never sees earlier data again.";
+  const worst = Math.max(0, ...drops.filter((d) => d.hit).map((d) => -d.d));
+  if (worst >= 0.05) sum += " Each new contribution cost the earlier ciphers a little accuracy.";
   $("runsum").textContent = sum;
 
   let h = "";
@@ -1123,14 +1124,12 @@ function renderReplay() {
   $("narr1").textContent = narrHead(st, k);
   $("narr2").textContent = narrate(st, k);
 
-  // the grid: one row per contribution, then everyday questions and the stacked pair
+  // the grid: one row per contribution, then everyday questions
   const trains = rows.filter((r) => r.event === "train");
   const setOf = (id) => st.sets.find((x) => x.id === id) || {};
   const phone = matchMedia("(max-width: 640px)").matches;
   const grows = trains.map((r) => ({ id: r.contributor, label: r.contributor, sub: phone ? `added at v${r.version}` : `${setOf(r.contributor).task || r.kind || ""} · added at v${r.version}` }));
   grows.push({ id: "general", label: "everyday questions", sub: phone ? "never trained" : "general ability, never trained here", gap: true });
-  const comp = st.sets.find((x) => x.kind === "composition");
-  if (comp) grows.push({ id: comp.id, label: comp.label.split("+").join(" + "), sub: phone ? "never trained" : "stacked, never trained" });
   const narrow = matchMedia("(max-width: 640px)").matches, lab = narrow ? 112 : 240;
   // phones: size columns so a whole number of them (at least 3) fits beside the names
   const avail = $("heat").parentElement.clientWidth - lab;

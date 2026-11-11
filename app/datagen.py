@@ -122,11 +122,38 @@ def cipher_dataset(tag, encrypt, n_train, n_eval, rng):
     return [row(m) for m in tr], [row(m) for m in ev]
 
 
-def composition_eval(tag1, enc1, tag2, enc2, n, rng):
-    """Encrypted with cipher 1, then cipher 2. Never trained on: tests composition."""
-    _, ev = _distinct_messages(rng, 0, n)
-    return [{"prompt": f"[{tag1}+{tag2}] Decode: {spaced(enc2(enc1(m)))}",
-             "completion": spaced(m)} for m in ev]
+# ---------- replay and run settings ----------
+# Settings the operator may choose at /admin/reset. Bounds are fixed in the released code, so the
+# attestation covers them; the values in force are signed into every ledger row.
+SETTING_BOUNDS = {"lr": (2e-5, 5e-4, float), "epochs": (1, 4, int), "replay_per_skill": (0, 300, int)}
+
+
+def check_settings(settings):
+    """Validate run settings against SETTING_BOUNDS. Returns the cleaned dict; raises ValueError."""
+    out = {}
+    for k, v in (settings or {}).items():
+        if v is None:
+            continue
+        if k not in SETTING_BOUNDS:
+            raise ValueError(f"unknown setting {k!r}")
+        lo, hi, cast = SETTING_BOUNDS[k]
+        if isinstance(v, bool) or (cast is int and float(v) != int(v)):
+            raise ValueError(f"{k} must be {'an integer' if cast is int else 'a number'}")
+        v = cast(v)
+        if not lo <= v <= hi:
+            raise ValueError(f"{k} must be between {lo} and {hi}")
+        out[k] = v
+    return out
+
+
+def replay_mix(own, earlier, per_skill, rng):
+    """A contribution's training set: all of its own pairs, plus a random sample of `per_skill`
+    pairs from each earlier contribution (all of them if it has fewer), shuffled together."""
+    out = list(own)
+    for ex in earlier:
+        out += rng.sample(list(ex), min(per_skill, len(ex)))
+    rng.shuffle(out)
+    return out
 
 
 def general_eval(rng):

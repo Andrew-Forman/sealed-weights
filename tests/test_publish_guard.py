@@ -54,6 +54,7 @@ breaks = {
     "no release tag": lambda r: r["state"]["env"].update(release_tag=None),
     "no demo decode": lambda r: r.update(decode_examples=[]),
     "marked as a sample": lambda r: r.update(sample=True),
+    "a cipher forgotten": lambda r: r["state"]["accuracy"]["maya"].__setitem__(-1, 0.40),
     "no saved verification": lambda r: r.pop("verification"),
     "failed saved check": lambda r: r["verification"]["checks"][0].update(status="fail"),
     "key not checked": lambda r: r["verification"]["checks"][2].update(status="not_checked"),

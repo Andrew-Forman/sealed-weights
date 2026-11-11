@@ -79,15 +79,32 @@ def test_cipher_dataset_shapes_and_disjoint():
     assert dec(d.unspaced(ct)) == d.unspaced(r["completion"])
 
 
-def test_composition():
-    _, e1, d1 = d.make_cipher("caesar", 3)
-    _, e2, d2 = d.make_cipher("substitution", d.ATBASH)
-    ev = d.composition_eval("a", e1, "b", e2, 10, random.Random(0))
-    assert len(ev) == 10
-    for r in ev:
-        assert r["prompt"].startswith("[a+b] Decode: ")
-        ct = d.unspaced(r["prompt"].split("Decode: ")[1])
-        assert d1(d2(ct)) == d.unspaced(r["completion"])
+def test_replay_mix():
+    own = [{"prompt": f"o{i}", "completion": "x"} for i in range(300)]
+    a = [{"prompt": f"a{i}", "completion": "x"} for i in range(300)]
+    b = [{"prompt": f"b{i}", "completion": "x"} for i in range(100)]
+    mix = d.replay_mix(own, [a, b], 150, random.Random(0))
+    assert len(mix) == 300 + 150 + 100            # b has fewer than 150: all of it
+    assert all(r in mix for r in own)             # every own pair, exactly once
+    assert sum(r["prompt"][0] == "a" for r in mix) == 150
+    assert len({r["prompt"] for r in mix}) == len(mix)   # sampled without repeats
+    assert [r["prompt"] for r in mix[:300]] != [r["prompt"] for r in own]   # shuffled
+    assert d.replay_mix(own, [a], 0, random.Random(0)) != own and sorted(
+        r["prompt"] for r in d.replay_mix(own, [a], 0, random.Random(0))) == sorted(r["prompt"] for r in own)
+
+
+def test_check_settings():
+    assert d.check_settings({"lr": 1e-4, "epochs": 3, "replay_per_skill": 300}) == {
+        "lr": 1e-4, "epochs": 3, "replay_per_skill": 300}
+    assert d.check_settings({"lr": None}) == {} and d.check_settings(None) == {}
+    assert d.check_settings({"epochs": 2.0}) == {"epochs": 2}
+    for bad in ({"lr": 1e-5}, {"lr": 6e-4}, {"epochs": 0}, {"epochs": 5}, {"epochs": 2.5},
+                {"replay_per_skill": -1}, {"replay_per_skill": 301}, {"lora_r": 8}, {"epochs": True}):
+        try:
+            d.check_settings(bad)
+        except ValueError:
+            continue
+        raise AssertionError(f"accepted {bad}")
 
 
 def test_name_re():

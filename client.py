@@ -14,13 +14,15 @@ Commands
                                 into the run file for the site
   snapshot --out runs/x.json    save the public run record (+ attestation); --watch saves
                                 after every new version until Ctrl-C
-  seed | reset | forget         operator (needs --token)
+  seed | forget                 operator (needs --token)
+  reset [--lr X --epochs N --replay N]
+                                operator: wipe the run; optional settings for the new run
   contribute NAME data.jsonl    operator: submit a raw dataset (JSONL prompt/completion, split 80/20)
 
 The app runs only inside a Tinfoil enclave. --enclave uses Tinfoil's SecureClient, which verifies
 the enclave's attestation against the measured release of --repo before sending anything.
 """
-import argparse, base64, hashlib, json, os, random, re, secrets, shutil, subprocess, sys, time
+import argparse, base64, hashlib, json, os, random, re, secrets, shutil, subprocess, sys, threading, time
 
 
 class Sealed:
@@ -292,7 +294,58 @@ def attestation_record(api, host, repo):
     return rec
 
 
-def snapshot(api, out, x, watch=False, interval=3.0):
+def call_with_timeout(fn, timeout):
+    """Run fn() with a deadline. Tinfoil's client has no request timeout, so a stalled request
+    would otherwise block forever; here the caller gets a TimeoutError and can retry."""
+    box = {}
+
+    def run():
+        try:
+            box["v"] = fn()
+        except BaseException as e:   # includes the SystemExit Sealed raises on an HTTP error
+            box["e"] = e
+    t = threading.Thread(target=run, daemon=True)
+    t.start()
+    t.join(timeout)
+    if t.is_alive():
+        raise TimeoutError(f"no answer within {timeout:g}s")
+    if "e" in box:
+        raise box["e"]
+    return box["v"]
+
+
+def get_state(api_box, make_api=None, timeout=30, tries=5):
+    """GET /state with a timeout, retrying (with a fresh attested client) if a request stalls."""
+    for i in range(tries):
+        try:
+            return call_with_timeout(lambda: api_box[0].get("/state"), timeout)
+        except (Exception, SystemExit) as e:
+            print(f"warning: /state request failed ({e}); retry {i + 1} of {tries - 1}", flush=True)
+            if make_api:
+                try:
+                    api_box[0] = call_with_timeout(make_api, timeout)
+                except (Exception, SystemExit) as e2:
+                    print(f"warning: couldn't reconnect ({e2})", flush=True)
+            time.sleep(min(2 ** i, 10))
+    raise RuntimeError(f"/state failed {tries} times in a row")
+
+
+def state_as_of(st, v):
+    """/state as of version v, rebuilt from a later /state: the signed ledger up to v and every
+    score column up to v. Used when the watcher missed a version; marked "reconstructed"."""
+    n = v + 1
+    acc = {k: list(row)[:n] for k, row in st["accuracy"].items()}
+    keep = {k for k, row in acc.items() if any(x is not None for x in row)}
+    return {**st, "ledger": st["ledger"][:n], "versions": st["versions"][:n], "current_version": v,
+            "accuracy": {k: acc[k] for k in keep},
+            "loss": {k: list(row)[:n] for k, row in st.get("loss", {}).items() if k in keep},
+            "sets": [s for s in st["sets"] if s["id"] in keep],
+            "contributors": [c for c in st.get("contributors", [])
+                             if c.get("version") is not None and c["version"] <= v],
+            "current": None, "progress": None, "queue_length": None, "reconstructed": True}
+
+
+def snapshot(api, out, x, watch=False, interval=3.0, make_api=None):
     old = json.load(open(out)) if os.path.exists(out) else {}
     run = {"schema": "sealed-weights-run/1", "name": os.path.splitext(os.path.basename(out))[0],
            "source": {"kind": "enclave", "host": x.enclave},
@@ -301,9 +354,16 @@ def snapshot(api, out, x, watch=False, interval=3.0):
     if old.get("verification"):
         run["verification"] = old["verification"]   # dropped below if the ledger changes
     run["attestation"] = attestation_record(api, x.enclave, x.repo)
-    seen = None
+    seen, box = None, [api]
     while True:
-        st = api.get("/state")
+        try:
+            st = get_state(box, make_api)
+        except RuntimeError as e:
+            if not watch:
+                raise
+            print(f"warning: {e}; still watching", flush=True)
+            time.sleep(interval)
+            continue
         ledger = st["ledger"]
         sig = [r["row_sha256"] for r in ledger]
         if seen is not None and sig[:len(seen)] != seen:   # reset / different run underneath us
@@ -314,9 +374,12 @@ def snapshot(api, out, x, watch=False, interval=3.0):
         if sig != seen:
             if run.get("verification") and sig != [r["row_sha256"] for r in (old.get("state") or {}).get("ledger", [])]:
                 run.pop("verification")   # it checked a different ledger; re-run verify --save
-            for r in ledger:   # the /state as of each version, so Replay can step through it
-                run["states_by_version"].setdefault(str(r["version"]), None)
-            run["states_by_version"][str(len(ledger) - 1)] = st
+            run["states_by_version"][str(len(ledger) - 1)] = st   # /state as of each version
+            for r in ledger[:-1]:   # a version that was signed between two polls: rebuild it
+                if not run["states_by_version"].get(str(r["version"])):
+                    run["states_by_version"][str(r["version"])] = state_as_of(st, r["version"])
+                    print(f"warning: missed v{r['version']}; recorded it from the ledger and the "
+                          f"current scores", flush=True)
             e = st["env"]
             if e.get("release_tag") and "release_config" not in run:
                 run["release_config"] = release_config(x.repo, e["release_tag"])
@@ -364,6 +427,9 @@ def main():
     a.add_argument("--skill", help="decode: the skill you mean to use")
     a.add_argument("--record", help="decode: append the example to this snapshot file")
     a.add_argument("--expect", help="decode --record: the right plaintext, to mark the example correct")
+    a.add_argument("--lr", type=float, help="reset: learning rate for the new run (2e-5 to 5e-4)")
+    a.add_argument("--epochs", type=int, help="reset: epochs per contribution (1 to 4)")
+    a.add_argument("--replay", type=int, help="reset: earlier pairs replayed per contribution (0 to 300)")
     a.add_argument("cmd"); a.add_argument("args", nargs="*")
     x = a.parse_args()
 
@@ -414,11 +480,14 @@ def main():
         if not x.out:
             a.error("snapshot needs --out runs/<name>.json")
         try:
-            snapshot(api, x.out, x, watch=x.watch)
+            snapshot(api, x.out, x, watch=x.watch, make_api=lambda: Sealed(x.enclave, x.repo))
         except KeyboardInterrupt:
             print(f"\nstopped; last save is in {x.out}")
-    elif c in ("seed", "reset"):
-        print(json.dumps(api.post(f"/admin/{c}", {}, adm), indent=2))
+    elif c == "seed":
+        print(json.dumps(api.post("/admin/seed", {}, adm), indent=2))
+    elif c == "reset":   # optional run settings, checked against the bounds in the released code
+        body = {k: v for k, v in (("lr", x.lr), ("epochs", x.epochs), ("replay_per_skill", x.replay)) if v is not None}
+        print(json.dumps(api.post("/admin/reset", body, adm), indent=2))
     elif c == "forget":
         print(json.dumps(api.post("/forget", {}, adm), indent=2))
     else:

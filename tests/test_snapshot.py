@@ -34,9 +34,47 @@ def test_guard():
     client.assert_no_secrets({"commitment": "abc", "ledger": [{"signature": "00"}]})
 
 
+def test_watcher_survives_a_stalled_request():
+    import time
+
+    class Stub:   # first request hangs (as on take one), later ones answer
+        calls = 0
+
+        def get(self, p):
+            Stub.calls += 1
+            if Stub.calls == 1:
+                time.sleep(30)
+            return {"ok": Stub.calls}
+    t0 = time.time()
+    try:
+        client.call_with_timeout(lambda: time.sleep(5), 0.2)
+        raise AssertionError("no timeout")
+    except TimeoutError:
+        pass
+    assert time.time() - t0 < 2
+    out = client.get_state([Stub()], make_api=Stub, timeout=0.3, tries=3)
+    assert out == {"ok": 2}, out
+
+
+def test_missed_version_is_rebuilt():
+    st = json.load(open("tests/fixtures/layout-sample.json"))["state"]
+    v2 = client.state_as_of(st, 2)
+    assert len(v2["ledger"]) == 3 and v2["current_version"] == 2 and v2["reconstructed"]
+    assert all(len(row) == 3 for row in v2["accuracy"].values())
+    assert {s["id"] for s in v2["sets"]} == set(v2["accuracy"]), "only sets that existed by v2"
+    assert all(c["version"] <= 2 for c in v2["contributors"])
+    import contextlib, io
+    with contextlib.redirect_stdout(io.StringIO()):
+        assert client.verify(v2), "the rebuilt state's ledger still verifies"
+
+
 if __name__ == "__main__":
     test_guard()
     print("ok   assert_no_secrets catches secret fields")
+    test_watcher_survives_a_stalled_request()
+    print("ok   a stalled /state request times out and is retried")
+    test_missed_version_is_rebuilt()
+    print("ok   a missed version is rebuilt from the ledger and scores")
     if len(sys.argv) > 1:
         secrets = json.load(open(sys.argv[2])) if len(sys.argv) > 2 else []
         run = scan(sys.argv[1], secrets)
