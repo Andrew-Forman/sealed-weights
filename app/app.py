@@ -437,7 +437,7 @@ def _enqueue(name, kind, task, secret_material, train, eval_, encrypt=None, forc
     return {"name": name, "token": token, "salt": salt, "commitment": commitment,
             "commitment_scheme": "sha256(salt + key)", "queue_position": pos,
             "n_train": len(train), "n_eval": len(eval_),
-            "note": "Save the token: it is shown once and is the only way to use your skill."}
+            "note": "Save the token: it is shown once and is the only way to use your cipher."}
 
 
 def _cipher(name, kind, key, force=False):
@@ -524,7 +524,7 @@ def decode(r: DecodeRequest):
         if r.skill is not None:
             sk = S["skills"].get(r.skill)
             if sk is None:
-                raise HTTPException(404, "no such skill")
+                raise HTTPException(404, "no such cipher")
             if not hmac.compare_digest(sk._token_hash, th):
                 raise HTTPException(401, f"this token can't use {r.skill}'s cipher")
         else:
@@ -533,7 +533,7 @@ def decode(r: DecodeRequest):
     if sk is None:
         raise HTTPException(401, "unknown token")
     if sk.status != "trained":
-        raise HTTPException(409, f"your skill is {sk.status}; try again once it is trained")
+        raise HTTPException(409, f"your cipher is {sk.status}; try again once it is trained")
     text = r.ciphertext.strip()[:200]
     if not text:
         raise HTTPException(400, "empty ciphertext")

@@ -22,7 +22,7 @@ and shows the saved hardware checks.
    pairs of scrambled and plain messages to train on, and 40 more held out for scoring.
 3. **The model trains and is scored.** One shared LoRA adapter on Qwen2.5-1.5B-Instruct trains
    on the new pairs, plus a sample of each earlier party's pairs so it keeps the ciphers it
-   learned before. Every party's skill is then scored again on its held-out messages.
+   learned before. Every party's cipher is then tested again on its held-out messages.
 4. **The new version is signed.** The record of the version (scores, a hash of the weights,
    the hash of the previous record) is signed with a key generated inside the enclave at boot.
 

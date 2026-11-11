@@ -447,7 +447,7 @@ pre.wcmd { margin: 0; padding: 14px 16px; background: #0a0e14; border: 1px solid
 
       <div class="card" id="c-back">
         <div class="eyebrow">What comes back to you</div>
-        <div class="field"><div class="lbl">Your token, shown once</div><div class="box" id="mytoken"><span class="muted">appears after you send</span></div><p class="cap">Only this unlocks the skill you taught.</p></div>
+        <div class="field"><div class="lbl">Your token, shown once</div><div class="box" id="mytoken"><span class="muted">appears after you send</span></div><p class="cap">Only this unlocks the cipher you taught.</p></div>
         <div class="field"><div class="lbl">Commitment to your key</div><div class="box" id="mycommit"><span class="muted">sha256(salt + key)</span></div><p class="cap" id="saltcap">Later, prove your key went in without revealing it.</p></div>
         <div class="field"><div class="lbl">Your row in the ledger</div><div class="box" id="myrow"><span class="muted">appears when your version is signed</span></div></div>
       </div>
@@ -464,7 +464,7 @@ pre.wcmd { margin: 0; padding: 14px 16px; background: #0a0e14; border: 1px solid
     <h2 class="sh"><span class="num">03</span>Use what you added</h2>
     <div class="grid2">
       <div class="card">
-        <div class="field" id="dskillwrap"><label for="dskill">Your skill</label><select id="dskill"></select></div>
+        <div class="field" id="dskillwrap"><label for="dskill">Your cipher</label><select id="dskill"></select></div>
         <div class="field"><label for="dtext">Ciphertext in your cipher</label><input id="dtext" class="mono" maxlength="200" spellcheck="false" autocomplete="off" placeholder="KHOOR ZRUOG"></div>
         <button class="btn" id="dgo" type="button">Decode with my token</button>
         <div class="box" id="dout"><span class="muted">The decoded text appears here.</span></div>
@@ -473,7 +473,7 @@ pre.wcmd { margin: 0; padding: 14px 16px; background: #0a0e14; border: 1px solid
       <div class="card">
         <div class="lbl">Same request with another party's token</div>
         <div class="box refuse" id="rout">401 · this token can't use maya's cipher</div>
-        <p class="cap" style="font-size:14px;color:var(--muted)">The skill sits in the shared weights. The enclave app only answers for a cipher when its contributor's token comes with the request.</p>
+        <p class="cap" style="font-size:14px;color:var(--muted)">The cipher sits in the shared weights. The enclave app only answers for a cipher when its contributor's token comes with the request.</p>
         <button class="btn ghost small" id="rgo" type="button" style="align-self:flex-start">Try it with another token</button>
       </div>
     </div>
@@ -1064,7 +1064,7 @@ function renderOverview() {
       <div class="step"><span class="n">1</span><b>Sends private data</b><p>Here, a cipher key: a Caesar shift or a scrambled alphabet. It stands in for a private dataset.</p></div></div>
     <div class="szone enc"><div class="slabel">${LOCK}Inside the enclave</div><div class="sinner">
       <div class="step"><span class="n">2</span><b>The key becomes private training data</b><div class="ex cyc" id="cyc">${esc(pairs[0])}</div><p>${first?.n_train ?? hp.n_train} pairs to train on, ${hp.n_eval} held out for scoring.</p></div>
-      <div class="step"><span class="n">3</span><b>The model trains and is scored</b><div class="ex">v${v - 1} → v${v}${first ? ` · ${Math.round(first.train_seconds)} s` : ""}</div><p>One shared LoRA adapter. Every party's skill is re-scored.</p></div>
+      <div class="step"><span class="n">3</span><b>The model trains and is scored</b><div class="ex">v${v - 1} → v${v}${first ? ` · ${Math.round(first.train_seconds)} s` : ""}</div><p>One shared LoRA adapter. Every party's cipher is then tested again on its held-out messages.</p></div>
       <div class="step"><span class="n">4</span><b>The new version is signed</b><div class="ex">weights ${esc(short(first?.weights_sha256))} <span id="sigok" class="muted">checking…</span></div><p>With a key generated inside the enclave at boot.</p></div>
     </div></div>`;
   clearInterval(cycTimer); let ci = 0;

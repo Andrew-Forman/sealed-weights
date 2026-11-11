@@ -424,7 +424,7 @@ def main():
     a.add_argument("--watch", action="store_true", help="snapshot: keep saving every new version")
     a.add_argument("--run", help="verify: check a saved snapshot instead of the live /state")
     a.add_argument("--save", action="store_true", help="verify --run: save the result into the run file")
-    a.add_argument("--skill", help="decode: the skill you mean to use")
+    a.add_argument("--skill", help="decode: the cipher you mean to use")
     a.add_argument("--record", help="decode: append the example to this snapshot file")
     a.add_argument("--expect", help="decode --record: the right plaintext, to mark the example correct")
     a.add_argument("--lr", type=float, help="reset: learning rate for the new run (2e-5 to 5e-4)")
