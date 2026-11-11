@@ -1032,7 +1032,7 @@ function renderOverview() {
   for (const r of rows) {
     const meta = `${r.event === "train" ? Math.round(r.train_seconds) + " s · " : ""}${short(r.weights_sha256)}`;
     if (r.event === "base") {
-      const name = modelName(r);
+      const name = modelName(r, st.env);
       const gen = acc("general", r.version);
       h += `<div class="vrow"><div class="who"><span class="v">v${r.version}</span><b>base model</b></div><div class="detail">${esc([name, r.weights_root ? `pinned ${short(r.weights_root)}` : RUN?.sample ? "not pinned (layout sample)" : "not pinned", gen != null ? `general ${f2(gen)}` : ""].filter(Boolean).join(" · "))}</div><div class="meta">${esc(short(r.weights_sha256))}</div></div>`;
       continue;
