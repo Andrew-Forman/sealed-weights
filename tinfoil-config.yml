@@ -1,7 +1,7 @@
 # Sealed Weights - Tinfoil Containers config. This file must stay in a PUBLIC repo:
 # Tinfoil measures it at each release tag and clients verify against that measurement.
 #
-# Pinned: image digest (Build Image v0.1.0), base weights (tinfoil model wrap, dm-verity root
+# Pinned: image digest (Build Image v0.2.0), base weights (tinfoil model wrap, dm-verity root
 # hash), MODEL_PATH = /tinfoil/mpk/mpk-<root hash>. To change either, rebuild/rewrap, update the
 # pins here, commit, and run "Tinfoil Release" with a new version.
 
@@ -30,7 +30,7 @@ attested-keys:
 
 containers:
   - name: "sealed-weights"
-    image: "ghcr.io/andrew-forman/sealed-weights@sha256:c5860963b23c549c30a4b500032c38cf168a4af56edb34ee087c46fbd792ae85"   # Build Image v0.1.0
+    image: "ghcr.io/andrew-forman/sealed-weights@sha256:ea7fb27e6c5557f82d6240ea02e2797e707b11332cff8049c7da796ba4d5d791"   # Build Image v0.2.0
     runtime: nvidia
     gpus: all
     restart: always
