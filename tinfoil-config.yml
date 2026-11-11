@@ -1,0 +1,68 @@
+# Sealed Weights - Tinfoil Containers config. This file must stay in a PUBLIC repo:
+# Tinfoil measures it at each release tag and clients verify against that measurement.
+#
+# Pinned: image digest (Build Image v0.1.0), base weights (tinfoil model wrap, dm-verity root
+# hash), MODEL_PATH = /tinfoil/mpk/mpk-<root hash>. To change either, rebuild/rewrap, update the
+# pins here, commit, and run "Tinfoil Release" with a new version.
+
+cvm-version: 0.14.17   # latest stable at github.com/tinfoilsh/cvmimage/releases; attested keys need >= 0.14.10
+cpus: 16
+memory: 65536
+gpus: 1
+
+models:
+  # from: tinfoil model wrap Qwen/Qwen2.5-1.5B-Instruct --host iridium-1 --wait  (job ehaqcekljdkazdia)
+  # LICENSE NOTE: NOTICE names this model and its license (Apache 2.0). If you change the base
+  # model, update NOTICE (and MODEL_NAME below) to match; larger Qwen2.5 models (e.g. 3B, 72B)
+  # use different licenses.
+  - name: "qwen2.5-1.5b-instruct"
+    repo: "Qwen/Qwen2.5-1.5B-Instruct@989aa7980e4cf806f80c7fef2b1adb7bc71aa306"
+    mpk: "0cf398556ee14a2267a6accd417a9f6bd6934a8587670682df78d463e5b3efa1_3098980352_78ef8fb7-d2e8-580b-a782-fa8b61870d13"
+
+# Attested keys (beta, needs V3 attestation for your org): an Ed25519 key generated inside the
+# enclave at boot; its public key is endorsed in the attestation document. The app signs every
+# ledger step with it. If your org doesn't have V3 yet, delete this block AND the `keys:` line
+# in the container below; the app then signs with an ephemeral in-memory key and reports
+# attested_key: false.
+attested-keys:
+  - id: scorecard
+    key: ed25519
+
+containers:
+  - name: "sealed-weights"
+    image: "ghcr.io/andrew-forman/sealed-weights@sha256:c5860963b23c549c30a4b500032c38cf168a4af56edb34ee087c46fbd792ae85"   # Build Image v0.1.0
+    runtime: nvidia
+    gpus: all
+    restart: always
+    keys: [scorecard]
+    env:
+      - MODEL_PATH: "/tinfoil/mpk/mpk-0cf398556ee14a2267a6accd417a9f6bd6934a8587670682df78d463e5b3efa1"
+      - MODEL_NAME: "Qwen2.5-1.5B-Instruct"   # display name only; MODEL_PATH is what loads
+      - KEY_DIR: "/run/tinfoil/keys/scorecard"
+      - CONFIG_REPO: "Andrew-Forman/sealed-weights"
+      - RELEASE_TAG: "v0.2.0"      # must equal the Tinfoil Release tag; shown in the UI and signed into v0
+      - HF_HUB_OFFLINE: "1"        # no egress: load only from the verified, mounted weights
+      - TRANSFORMERS_OFFLINE: "1"
+    secrets:
+      - RUN_TOKEN                  # admin bearer token; set it in the dashboard's Secrets tab
+    tmpfs:
+      /tmp: size=8g,mode=1777,exec
+      /root: size=2g,mode=0700,exec
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 5s
+      start_period: 10m
+
+shim:
+  upstream-port: 8000
+  paths:            # every route the app serves; anything else is a 404 at the shim
+    - /
+    - /state
+    - /health
+    - /submit_cipher
+    - /contribute
+    - /decode
+    - /admin/seed
+    - /admin/reset
+    - /forget

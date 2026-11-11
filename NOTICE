@@ -1,0 +1,19 @@
+Sealed Weights
+Copyright 2026 Andrew Forman
+
+This product is licensed under the Apache License, Version 2.0 (see LICENSE).
+
+Base model
+  The demo runs on Qwen2.5-1.5B-Instruct by Alibaba Cloud (Qwen team), licensed under the
+  Apache License, Version 2.0: https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct, at the
+  commit pinned in tinfoil-config.yml (989aa7980e4cf806f80c7fef2b1adb7bc71aa306).
+  The model weights are not included in this repository; Tinfoil mounts them, verified,
+  inside the enclave at run time.
+
+Files adapted from Tinfoil
+  .github/workflows/tinfoil-release.yml, .github/workflows/tinfoil-release-publish.yml and
+  .github/workflows/build-image.yml are adapted from Tinfoil's public templates
+  (https://github.com/tinfoilsh/tinfoil-containers-template and
+  https://github.com/tinfoilsh/tinfoil-containers-hello-world). Those repositories do not
+  include a license file, so these three files are not offered under the Apache License by
+  the author of this repository.

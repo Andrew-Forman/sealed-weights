@@ -1,0 +1,7 @@
+{
+ "source": "https://inference.tinfoil.sh/.well-known/tinfoil-attestation (fetched 2026-11-10)",
+ "registers": [
+  "0d3bb3cf60db994d2ad79282bc64d904dc9273d9addb2e1d21f22084e4f6a7627ae9df060d85d384694b1a416850697c"
+ ],
+ "tls_fp": "61956f619720c041dd2940656f8f77965b7ac53a1dfa5202019d5a38cd63640e"
+}

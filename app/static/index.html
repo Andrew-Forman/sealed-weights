@@ -1,0 +1,1318 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sealed Weights</title>
+<meta name="description" content="Several parties train one model inside a confidential GPU. No one sees the weights or anyone else's data. Every version of the weights is hashed, scored and signed inside the enclave.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+<!--SEALED_STATIC-->
+<style>
+:root {
+  --bg: #0d1117; --panel: #161b22; --enc: #10161f; --line: #2a313c; --line2: #1f262f;
+  --ink: #e6edf3; --ink2: #c9d1d9; --muted: #9aa4b2; --accent: #7cc4fa; --amber: #f0b35a;
+  --ok: #56d364; --ok-bg: #12261b; --ok-line: #23462f; --no: #f0c88a; --no-bg: #2a1d10; --no-line: #5a3d1a;
+  --bad: #ff8b85; --bad-bg: #2d1416; --cell0: #1b2533; --empty: #131920;
+  --head: "Space Grotesk", Inter, system-ui, sans-serif;
+  --body: Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+* { box-sizing: border-box; }
+html { background: var(--bg); }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.5 var(--body); }
+a { color: #8cc8ff; } a:hover { color: #bfe0ff; }
+button, input, select { font: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.wrap { max-width: 1240px; margin: 0 auto; padding: 40px 32px 80px; display: flex; flex-direction: column; gap: 40px; }
+.mono { font-family: var(--mono); }
+.muted { color: var(--muted); }
+[hidden] { display: none !important; }
+
+/* header */
+.top { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 24px; }
+.brand { font: 700 30px/1.1 var(--head); letter-spacing: -.4px; margin: 0; padding-top: 12px; }
+.hright { display: flex; flex-direction: column; align-items: flex-end; gap: 12px; }
+.tabs { display: flex; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 4px; gap: 4px; }
+.tabs a { padding: 14px 26px; min-height: 48px; border-radius: 9px; color: var(--ink2); font-weight: 500; font-size: 17px; text-decoration: none; }
+.tabs a:hover { color: var(--ink); background: #1c232c; }
+.tabs a[aria-current="page"] { background: var(--accent); color: var(--bg); font-weight: 600; }
+.envbadge { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink2); background: var(--panel); border: 1px solid var(--line); border-radius: 999px; padding: 8px 14px; }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); flex: none; }
+.dot.on { background: #3fb950; }
+
+/* building blocks */
+.view { display: flex; flex-direction: column; gap: 40px; }
+.intro { margin: 0; max-width: 860px; font-size: 22px; line-height: 1.5; }
+.sec { display: flex; flex-direction: column; gap: 20px; }
+.sh { display: flex; align-items: baseline; gap: 14px; margin: 0; font: 600 26px/1.25 var(--head); }
+.sh .num { font: 14px var(--mono); color: var(--accent); }
+h3 { margin: 0; font: 600 20px/1.3 var(--head); }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 24px; display: flex; flex-direction: column; gap: 16px; min-width: 0; transition: border-color .3s, box-shadow .3s, opacity .3s; }
+.card.enc { background: var(--enc); }
+.card.lit { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(124,196,250,.12); }
+.grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; align-items: stretch; }
+.grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; align-items: start; }
+.eyebrow { display: flex; align-items: center; gap: 8px; font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); }
+.card.enc .eyebrow { color: var(--accent); }
+.field { display: flex; flex-direction: column; gap: 8px; }
+.field label, .lbl { font-size: 13px; color: var(--ink2); }
+.row { display: flex; gap: 10px; }
+.grow { flex: 1; min-width: 0; }
+input, select { background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 12px; color: var(--ink); font-size: 15px; width: 100%; min-height: 46px; }
+input.mono { font-family: var(--mono); }
+input:disabled, select:disabled, button:disabled { opacity: .55; cursor: not-allowed; }
+.btn { background: var(--accent); color: var(--bg); border: 0; border-radius: 10px; padding: 14px 18px; font-size: 16px; font-weight: 600; cursor: pointer; min-height: 48px; }
+.btn:hover:not(:disabled) { filter: brightness(1.08); }
+.btn.ghost { background: transparent; color: var(--ink); border: 1px solid #3a4350; font-weight: 500; }
+.btn.small { padding: 10px 14px; font-size: 14px; min-height: 44px; }
+.box { background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 12px; font: 14px/1.5 var(--mono); color: var(--ink); overflow-wrap: anywhere; }
+.box.dashed { border-style: dashed; border-color: #3a4350; border-radius: 10px; padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+.box.refuse { background: var(--no-bg); border-color: var(--no-line); color: var(--no); }
+.box.good { background: var(--ok-bg); border-color: var(--ok-line); color: #c9f0d3; font-family: var(--body); font-size: 15px; }
+.box.bad { background: var(--bad-bg); border-color: #5a2a2a; color: var(--bad); font-family: var(--body); font-size: 15px; }
+.pair { display: flex; justify-content: space-between; gap: 12px; }
+.cap { font-size: 13px; color: var(--muted); margin: 0; line-height: 1.5; }
+.kv { display: flex; justify-content: space-between; gap: 12px; font-size: 15px; color: var(--ink2); }
+.kv span:last-child { font-family: var(--mono); color: var(--ink); }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; font-size: 13px; color: var(--ink2); }
+.divide { border-top: 1px solid var(--line); padding-top: 14px; display: flex; flex-direction: column; gap: 8px; margin-top: auto; }
+.bigline { font: 600 22px/1.3 var(--head); }
+.status { font-size: 14px; color: var(--ink2); min-height: 21px; }
+.status.err { color: var(--bad); }
+.bar { height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; }
+.bar i { display: block; height: 100%; background: var(--accent); transition: width .5s; }
+.note { background: var(--enc); border: 1px solid var(--line); border-radius: 12px; padding: 14px 18px; color: var(--ink2); font-size: 15px; }
+.cta { align-self: center; display: inline-flex; align-items: center; gap: 12px; background: var(--accent); color: var(--bg); text-decoration: none; border-radius: 12px; padding: 20px 36px; font-size: 19px; font-weight: 600; text-align: center; }
+.cta:hover { color: var(--bg); filter: brightness(1.08); }
+.cta.outline { background: transparent; color: var(--ink); border: 1px solid var(--accent); }
+.cta.outline:hover { color: var(--ink); background: rgba(124,196,250,.08); }
+.cta svg { flex: none; }
+
+/* versions row */
+.vgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+.vcard { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.vcard.now { background: var(--enc); border-color: var(--accent); }
+.vcard.queued { opacity: .6; border-style: dashed; }
+.vtop { display: flex; justify-content: space-between; font: 13px var(--mono); color: var(--muted); }
+.vwho { font: 16px var(--mono); overflow-wrap: anywhere; }
+.vdelta { font-size: 14px; color: var(--ink2); }
+.vcard.now .vdelta { color: var(--accent); }
+
+
+/* replay + verify */
+.srcbar { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; font-size: 14px; color: var(--muted); }
+.scrollx { overflow-x: auto; }
+pre.cmd { margin: 0; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 14px; font: 13px/1.6 var(--mono); color: var(--ink); overflow-x: auto; white-space: pre; }
+.rp, .vf { gap: 64px; }
+.phead { display: flex; flex-direction: column; gap: 12px; }
+.phead h1 { margin: 0; font: 700 36px/1.2 var(--head); letter-spacing: -.4px; }
+.phead p { margin: 0; max-width: 760px; font-size: 19px; line-height: 1.55; color: var(--ink2); }
+.penv { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px; font: 13px var(--mono); color: var(--muted); }
+.penv a { font: 14px var(--body); }
+.psec { display: flex; flex-direction: column; gap: 20px; }
+.psec h2 { margin: 0; font: 700 26px/1.25 var(--head); }
+.pnote { margin: 0; max-width: 820px; font-size: 14px; line-height: 1.55; color: var(--muted); }
+.ptext { margin: 0; max-width: 820px; font-size: 16px; line-height: 1.55; color: var(--ink2); }
+.sechead { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 8px 24px; }
+.stepper { display: flex; flex-wrap: wrap; gap: 8px; align-items: stretch; }
+.pbtn { min-height: 56px; min-width: 96px; padding: 0 22px; border-radius: 10px; border: 1px solid #3a4350; background: var(--panel); color: var(--ink); font-size: 15px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+.pbtn:hover { border-color: var(--accent); }
+.vbtn { flex: 1 1 130px; min-width: 0; min-height: 56px; padding: 8px 14px; border-radius: 10px; text-align: left; border: 1px solid var(--line); background: var(--panel); color: var(--ink); display: flex; flex-direction: column; gap: 2px; cursor: pointer; }
+.vbtn:hover { border-color: #3a4350; }
+.vbtn .i { font: 13px var(--mono); color: var(--muted); }
+.vbtn .n { font: 500 14px var(--mono); overflow-wrap: anywhere; }
+.vbtn[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--bg); }
+.vbtn[aria-pressed="true"] .i { color: var(--bg); }
+.story { padding: 24px 28px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; display: flex; flex-direction: column; gap: 10px; }
+.story .h { font: 14px var(--mono); color: var(--accent); overflow-wrap: anywhere; }
+.story .s { font: 500 22px/1.4 var(--head); max-width: 900px; }
+.scale { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--muted); }
+.scale i { display: inline-block; width: 120px; height: 8px; border-radius: 4px; background: linear-gradient(90deg, rgba(124,196,250,.12), rgba(124,196,250,.95)); }
+.grid { display: grid; gap: 4px; position: relative; padding: 8px 6px 8px 0; }
+.gband { margin: -8px -2px -6px; border-radius: 10px; background: rgba(124,196,250,.10); border: 1px solid rgba(124,196,250,.5); }
+.gsp { height: 12px; }
+.gch { padding: 0 0 6px; text-align: center; font: 13px var(--mono); color: var(--muted); align-self: end; }
+.gch.sel { color: var(--accent); font-weight: 600; }
+.glab { position: sticky; left: 0; z-index: 2; background: var(--bg); box-shadow: 10px 0 10px -10px rgba(0,0,0,.9); display: flex; flex-direction: column; justify-content: center; padding-right: 8px; min-width: 0; }
+.glab b { font: 500 15px var(--mono); }
+.glab b i { font-style: normal; white-space: nowrap; }
+.glab span { font-size: 13px; color: var(--muted); }
+.gc { height: 44px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font: 15px var(--mono); font-variant-numeric: tabular-nums; transition: background .3s, color .3s; }
+.legend .ltick { width: 2px; height: 14px; border-radius: 0; background: var(--amber); }
+.krows { display: flex; flex-direction: column; border-top: 1px solid var(--line); }
+.krow { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 24px; padding: 14px 0; border-bottom: 1px solid var(--line2); }
+.krow .nm { flex: 0 0 196px; min-width: 0; font: 500 15px var(--mono); overflow-wrap: anywhere; }
+.krow .tr { flex: 1 1 280px; min-width: 0; position: relative; height: 8px; border-radius: 4px; background: var(--line2); }
+.krow .tr i { position: absolute; left: 0; top: 0; height: 8px; border-radius: 4px; background: var(--accent); }
+.krow .tr b { position: absolute; top: -4px; width: 2px; height: 16px; background: var(--amber); }
+.krow .tx { flex: 0 0 230px; font: 14px var(--mono); color: var(--ink2); font-variant-numeric: tabular-nums; }
+
+.vcards { display: flex; flex-wrap: wrap; gap: 16px; align-items: stretch; }
+.vc { flex: 1 1 440px; min-width: 0; padding: 28px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; display: flex; flex-direction: column; gap: 20px; }
+.vc.hw { background: var(--enc); }
+.vc .top2 { display: flex; flex-direction: column; gap: 4px; }
+.vc .eye { font-size: 13px; letter-spacing: 1.4px; text-transform: uppercase; color: var(--accent); }
+.vc .eye.off { color: var(--muted); }
+.vc h2 { margin: 0; font: 600 22px var(--head); }
+.ck { display: flex; gap: 14px; align-items: flex-start; }
+.ck b { display: block; font-size: 17px; font-weight: 600; }
+.ck p { margin: 4px 0 0; font-size: 15px; line-height: 1.5; color: var(--ink2); overflow-wrap: anywhere; }
+.ic { flex: 0 0 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+.ic.pass { background: var(--ok-bg); color: var(--ok); }
+.ic.fail { background: var(--bad-bg); color: var(--bad); }
+.ic.na, .ic.wait { background: #1c232c; color: var(--muted); }
+.vfoot { margin-top: auto; display: flex; flex-direction: column; gap: 10px; padding-top: 20px; border-top: 1px solid var(--line); font-size: 15px; color: var(--ink2); }
+.vfoot .sm { font-size: 14px; color: var(--muted); }
+pre.wcmd { margin: 0; padding: 14px 16px; background: #0a0e14; border: 1px solid var(--line); border-radius: 8px; font: 14px/1.6 var(--mono); color: var(--ink); white-space: pre-wrap; overflow-wrap: anywhere; }
+.tbtns { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.tbtn { min-height: 44px; padding: 0 18px; border-radius: 8px; border: 1px solid #3a4350; background: var(--bg); color: var(--ink); font-size: 15px; font-weight: 500; cursor: pointer; }
+.tbtn:hover { border-color: var(--accent); }
+.tstat { font-size: 14px; color: var(--amber); min-height: 21px; }
+.shows { display: flex; flex-wrap: wrap; gap: 24px 56px; }
+.shows > div { flex: 1 1 400px; min-width: 0; display: flex; flex-direction: column; gap: 12px; }
+.shows .k { font-size: 13px; letter-spacing: 1.4px; text-transform: uppercase; }
+.shows .k.yes { color: var(--ok); } .shows .k.no { color: var(--amber); }
+.shows ul { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 10px; font-size: 16px; line-height: 1.5; color: var(--ink2); }
+.lg { min-width: 820px; display: flex; flex-direction: column; font: 14px var(--mono); }
+.lg .r { display: grid; grid-template-columns: 88px 1.1fr 1.2fr 1.2fr 1.2fr 120px; gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--line2); }
+.lg .r > * { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lg .r.hd { padding: 10px 0; border-bottom-color: var(--line); font: 13px var(--body); letter-spacing: 1.2px; text-transform: uppercase; color: var(--muted); }
+.lg .m { color: var(--muted); }
+.lg .sig { text-align: right; } .lg .ok { color: var(--ok); } .lg .bad { color: var(--bad); }
+
+/* overview (static showcase) */
+.ov { gap: 104px; }
+.ovh2 { margin: 0; font: 700 32px/1.2 var(--head); letter-spacing: -.4px; }
+.ovsec { display: flex; flex-direction: column; gap: 28px; }
+.ovsec.ovhead { gap: 14px; }
+.ovintro { display: flex; flex-wrap: wrap; gap: 40px 56px; align-items: center; }
+.ovtext { flex: 1 1 420px; min-width: 0; display: flex; flex-direction: column; gap: 20px; }
+.ovtext h2 { margin: 0; font: 700 44px/1.12 var(--head); letter-spacing: -.6px; text-wrap: balance; }
+.ovlead { margin: 0; font-size: 20px; line-height: 1.55; color: var(--ink2); }
+.ovlead2 { margin: -4px 0 0; font-size: 17px; line-height: 1.55; color: var(--muted); }
+.ovmeta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; font: 13px var(--mono); color: var(--muted); }
+.ovprev { color: var(--amber); }
+.ovbadge { white-space: nowrap; display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--line); border-radius: 16px; padding: 6px 12px; color: var(--ink2); }
+.ovlinks { display: flex; flex-wrap: wrap; gap: 8px 20px; font-size: 16px; font-weight: 500; }
+.ovlinks a { text-decoration: none; } .ovlinks a:hover { text-decoration: underline; }
+.ovmedia { flex: 1 1 420px; min-width: 0; }
+.ovvideo { width: 100%; aspect-ratio: 16 / 9; border-radius: 12px; overflow: hidden; background: #0a0e14; border: 1px solid var(--line); }
+.ovvideo video { width: 100%; height: 100%; display: block; background: #000; }
+.ovph { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; color: var(--muted); font: 13px var(--mono); }
+.ovph .disc { width: 64px; height: 64px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; }
+.ovnote { margin: 0; max-width: 760px; font-size: 15px; line-height: 1.55; color: var(--muted); }
+.ovsay { margin: 0; max-width: 860px; font: 400 22px/1.45 var(--body); color: var(--ink); }
+.ovsay + .ovnote { margin-top: -8px; }
+
+.cmpwrap { overflow-x: auto; }
+.cmpstack { display: none; flex-direction: column; gap: 24px; }
+.cmpq { display: flex; flex-direction: column; gap: 6px; }
+.cmpq h3 { margin: 0 0 4px; font: 600 15px/1.35 var(--body); color: var(--muted); }
+.cmpq div { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 12px; padding: 10px 12px; border-radius: 8px; font-size: 16px; line-height: 1.45; color: var(--ink2); }
+.cmpq div b { font-weight: 600; color: var(--ink2); }
+.cmpq div.sealed { background: var(--enc); border: 1px solid var(--accent); color: var(--ink); font-weight: 500; }
+.cmpq div.sealed b { color: var(--accent); }
+.cmp { width: 100%; min-width: 680px; border-collapse: separate; border-spacing: 0; font-size: 17px; line-height: 1.45; table-layout: fixed; }
+.cmp col.c0 { width: 25%; } .cmp col.c1, .cmp col.c2 { width: 22.5%; } .cmp col.c3 { width: 30%; }
+.cmp th, .cmp td { text-align: left; vertical-align: top; padding: 18px 20px; border-bottom: 1px solid var(--line2); }
+.cmp thead th { padding: 16px 20px; border-bottom-color: var(--line); font: 700 20px var(--head); color: var(--ink2); }
+.cmp th[scope="row"] { padding-left: 0; font-weight: 400; color: var(--muted); }
+.cmp td { color: var(--ink2); }
+.cmp .sealed { background: var(--enc); color: var(--ink); font-weight: 500; }
+.cmp thead .sealed { color: var(--accent); border-bottom-color: var(--accent); border-radius: 10px 10px 0 0; }
+.cmp tbody tr:last-child > * { border-bottom: 0; }
+.cmp tbody tr:last-child .sealed { border-radius: 0 0 10px 10px; }
+
+.runsum { margin: 0; max-width: 820px; font-size: 20px; line-height: 1.55; color: var(--ink2); }
+.legend { display: flex; flex-wrap: wrap; gap: 8px 28px; font-size: 14px; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 8px; }
+.legend i { display: inline-block; flex: none; }
+.legend .lbar { width: 22px; height: 12px; border-radius: 6px; background: var(--accent); }
+.legend .ldot { width: 10px; height: 10px; border-radius: 50%; background: var(--amber); }
+.vrows { display: flex; flex-direction: column; border-top: 1px solid var(--line); }
+.vrow { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 24px; padding: 20px 0; border-bottom: 1px solid var(--line2); font-family: var(--mono); }
+.vrow .who { flex: 0 0 200px; min-width: 0; display: flex; align-items: baseline; gap: 12px; }
+.vrow .who .v { color: var(--muted); font-size: 14px; }
+.vrow .who b { font-size: 18px; font-weight: 600; overflow-wrap: anywhere; }
+.vrow .score { flex: 1 1 300px; min-width: 0; display: flex; align-items: center; gap: 16px; }
+.vrow .detail { flex: 1 1 300px; min-width: 0; font-size: 14px; color: var(--muted); overflow-wrap: anywhere; }
+.vrow .bar { flex: 1; height: 12px; border-radius: 6px; background: var(--line2); overflow: hidden; }
+.vrow .bar i { display: block; height: 100%; background: var(--accent); }
+.vrow .num { flex: none; font-size: 18px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.vrow .num span { color: var(--muted); font-weight: 400; }
+.vrow .drop { flex: 0 0 200px; min-width: 0; font-size: 15px; color: var(--muted); overflow-wrap: anywhere; }
+.vrow .drop.hit { color: var(--amber); }
+.vrow .meta { flex: 0 0 150px; text-align: right; font-size: 13px; color: var(--muted); }
+
+.steps { display: flex; flex-wrap: wrap; gap: 16px; align-items: stretch; }
+.szone { min-width: 0; padding: 28px; border-radius: 14px; display: flex; flex-direction: column; gap: 18px; }
+.szone.you { flex: 1 1 220px; border: 1px dashed #3a4350; }
+.szone.enc { flex: 3 1 560px; border: 1px solid var(--accent); background: var(--enc); }
+.slabel { display: flex; align-items: center; gap: 8px; font-size: 13px; letter-spacing: 1.4px; text-transform: uppercase; color: var(--muted); }
+.szone.enc .slabel { color: var(--accent); }
+.sinner { display: flex; flex-wrap: wrap; gap: 20px 32px; }
+.step { flex: 1 1 170px; min-width: 0; display: flex; flex-direction: column; gap: 12px; }
+.step .n { color: var(--accent); font: 600 15px var(--mono); }
+.step b { font: 700 21px/1.25 var(--head); }
+.step .ex { font: 500 17px var(--mono); color: var(--ink); overflow-wrap: anywhere; }
+.step p { margin: 0; font-size: 16px; color: var(--ink2); }
+.cyc { transition: opacity .45s; }
+.cyc.out { opacity: 0; }
+.signed { color: var(--ok); }
+.inout { display: flex; flex-wrap: wrap; gap: 24px 16px; margin-top: 8px; }
+.inout > div { flex: 1 1 320px; min-width: 0; padding: 4px 0 0 20px; border-left: 3px solid var(--accent); display: flex; flex-direction: column; gap: 6px; }
+.inout > div.out { border-left-color: var(--ok); }
+.inout .k { font-size: 13px; letter-spacing: 1.4px; text-transform: uppercase; color: var(--muted); }
+.inout .v { font: 400 22px/1.4 var(--body); color: var(--ink); }
+
+.dcards { display: flex; flex-wrap: wrap; gap: 16px; }
+.dcard { flex: 1 1 320px; min-width: 0; padding: 28px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; display: flex; flex-direction: column; gap: 14px; }
+.dcard .lbl { font-size: 16px; color: var(--ink2); }
+.dline { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; font: 600 28px var(--mono); overflow-wrap: anywhere; }
+.dline .arr { color: var(--muted); }
+.dline .yes { color: var(--ok); } .dline .no { color: var(--amber); }
+.dpend { font: 17px var(--mono); color: var(--muted); padding: 6px 0; }
+.contact { margin: 0 auto -8px; max-width: 760px; text-align: center; font-size: 15px; line-height: 1.55; color: var(--muted); }
+.ovbtns { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; }
+.ovbtns a { display: inline-flex; align-items: center; justify-content: center; gap: 10px; border-radius: 12px; padding: 20px 36px; font-size: 19px; text-decoration: none; min-height: 48px; }
+.ovbtns .pri { background: var(--accent); color: var(--bg); font-weight: 600; }
+.ovbtns .pri:hover { color: var(--bg); filter: brightness(1.08); }
+.ovbtns .sec2 { border: 1px solid #3a4350; color: var(--ink); font-weight: 500; }
+.ovbtns .sec2:hover { color: var(--ink); background: rgba(124,196,250,.08); }
+
+@media (max-width: 980px) {
+  .ov { gap: 72px; }
+  .grid3, .grid2 { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 640px) {
+  .wrap { padding: 24px 16px 60px; gap: 32px; }
+  .view { gap: 32px; }
+  .top { flex-direction: column; }
+  .hright { align-items: stretch; width: 100%; }
+  .tabs a { flex: 1; text-align: center; padding: 14px 8px; }
+  .brand { font-size: 28px; padding-top: 0; }
+  .intro { font-size: 19px; }
+  .sh { font-size: 22px; }
+  .story .s { font-size: 19px; }
+  .phead h1 { font-size: 30px; }
+  .phead p { font-size: 17px; }
+  .psec h2 { font-size: 22px; }
+  .rp, .vf { gap: 48px; }
+  .krow .nm, .krow .tr, .krow .tx { flex: 1 1 100%; }
+  .glab b { font-size: 14px; } .glab span { font-size: 13px; }
+  .vc { padding: 22px; }
+  .cta { padding: 18px 22px; font-size: 17px; width: 100%; justify-content: center; }
+  .ov { gap: 56px; }
+  .ovtext h2 { font-size: 32px; }
+  .inout .v { font-size: 19px; }
+  .ovsay { font-size: 19px; }
+  .ovlead { font-size: 18px; }
+  .runsum { font-size: 18px; }
+  .dline { font-size: 24px; }
+  .cmp { font-size: 16px; }
+  .ovbadge { white-space: normal; }
+  .cmpwrap { display: none; }
+  .cmpstack { display: flex; }
+  .ovh2 { font-size: 26px; }
+  .vrow .who, .vrow .score, .vrow .detail, .vrow .drop, .vrow .meta { flex: 1 1 100%; }
+  .vrow .meta { text-align: left; }
+  .szone.you, .szone.enc, .step, .dcard { flex-basis: 100%; }
+  .ovbtns a { width: 100%; }
+  .vgrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .vcard { padding: 14px; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="top">
+  <h1 class="brand">Sealed Weights</h1>
+  <div class="hright">
+    <nav class="tabs" aria-label="View">
+      <a href="#live" data-view="live">Live</a>
+      <a href="#replay" data-view="replay">Replay</a>
+      <a href="#verify" data-view="verify">Verify</a>
+    </nav>
+    <div class="envbadge" id="envbadge"><span class="dot" id="envdot"></span><span id="envtext">Connecting…</span></div>
+  </div>
+</header>
+
+<!-- ======================= OVERVIEW (static showcase) ======================= -->
+<main id="v-overview" class="view ov" hidden>
+  <section class="ovintro">
+    <div class="ovtext">
+      <h2>Several parties train one model. No one sees the weights or anyone else's data.</h2>
+      <p class="ovlead">Each party contributes private data to a model running inside a confidential GPU. The model trains on it and is tested, and the new weights are hashed and signed. No party sees another's data, and the weights never leave. A signed record of every version is public.</p>
+      <p class="ovlead2">In this demo the private data is a cipher. Each party sends a secret key, the enclave turns it into training examples, and the model learns to decode messages written in that cipher.</p>
+      <div class="ovmeta"><span class="ovbadge"><span class="dot" id="ovdot"></span><span id="ovenv">Loading the recorded run…</span></span><span id="ovdate"></span><span class="ovprev" id="ovprev" hidden>Preview, not for publishing</span></div>
+      <div class="ovlinks"><a id="ovrepo" href="#" target="_blank" rel="noopener">Code on GitHub</a><a href="#verify">Audit the run</a></div>
+    </div>
+    <div class="ovmedia"><div class="ovvideo" id="ovvideo"></div></div>
+  </section>
+
+  <section class="ovsec">
+    <h2 class="ovh2">Open, closed and sealed weights</h2>
+    <div class="cmpstack" id="cmpstack"></div>
+    <div class="cmpwrap" tabindex="0" role="region" aria-label="Comparison of open, closed and sealed weights">
+      <table class="cmp">
+        <colgroup><col class="c0"><col class="c1"><col class="c2"><col class="c3"></colgroup>
+        <thead><tr><td></td><th scope="col">Open</th><th scope="col">Closed</th><th scope="col" class="sealed">Sealed</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Who holds the weights</th><td>Anyone who downloads them</td><td>One provider</td><td class="sealed">A hardware enclave. No route returns them.</td></tr>
+          <tr><th scope="row">Who can see the training data</th><td>Whoever trained the model</td><td>The provider</td><td class="sealed">Only the party that sent it</td></tr>
+          <tr><th scope="row">What an outsider can check</th><td>The weights themselves</td><td>Nothing. You trust the provider.</td><td class="sealed">Which code and base model ran, and a signed record of every update</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="ovsec">
+    <div class="ovsec ovhead">
+      <h2 class="ovh2">The run, version by version</h2>
+      <p class="runsum" id="runsum"></p>
+    </div>
+    <div class="legend"><span><i class="lbar"></i>Share of the contributor's test messages decoded correctly, before → after</span><span><i class="ldot"></i>Largest drop it caused on an earlier cipher</span></div>
+    <div class="vrows" id="vrows"></div>
+    <p class="ovnote" id="runfoot"></p>
+  </section>
+
+  <section class="ovsec">
+    <h2 class="ovh2">How one contribution becomes a version</h2>
+    <div class="steps" id="steps"></div>
+    <div class="inout">
+      <div><span class="k">Stays inside</span><span class="v">Key, training pairs and weights</span></div>
+      <div class="out"><span class="k">Comes out</span><span class="v">Salted key commitment, scores, weights hash and signature</span></div>
+    </div>
+  </section>
+
+  <section class="ovsec">
+    <h2 class="ovh2">Each party can use only what it added</h2>
+    <div class="dcards" id="dcards"></div>
+    <p class="ovsay">One model has learned every party's cipher. The enclave checks the token on each request and decodes a cipher only for the party that contributed it.</p>
+    <p class="ovnote">The example shown uses a public demo key (shift 3).</p>
+  </section>
+
+  <p class="contact" hidden></p>
+  <div class="ovbtns">
+    <a class="pri" href="#replay">Replay the run <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+    <a class="sec2" href="#verify">Audit the run</a>
+  </div>
+</main>
+
+<!-- ======================= LIVE ======================= -->
+<main id="v-live" class="view">
+  <p class="intro">Several parties take turns fine-tuning one shared model inside a confidential GPU. No party sees another's data. Each update to the weights is hashed, scored and signed inside the enclave, so anyone can verify what every contribution changed.</p>
+
+  <section class="sec">
+    <h2 class="sh"><span class="num">01</span>Take your turn: add training data</h2>
+    <div class="grid3">
+      <div class="card" id="c-browser">
+        <div class="eyebrow">In your browser</div>
+        <div class="field"><label for="nm">Name</label><input id="nm" class="mono" maxlength="16" autocomplete="off" spellcheck="false" placeholder="maya"></div>
+        <div class="row">
+          <div class="field grow"><label for="ck">Cipher</label>
+            <select id="ck"><option value="caesar">Caesar shift</option><option value="substitution">Scrambled alphabet</option></select></div>
+          <div class="field" id="shiftwrap" style="width:96px"><label for="sh">Shift</label><input id="sh" class="mono" type="number" min="1" max="25" value="7"></div>
+        </div>
+        <div class="field" id="alphawrap" hidden><label for="al">Alphabet (a→z maps to)</label>
+          <div class="row"><input id="al" class="mono grow" maxlength="26" spellcheck="false" autocomplete="off"><button class="btn ghost small" id="rnd" type="button">Randomize</button></div></div>
+        <div class="field">
+          <div class="lbl">What your key turns into</div>
+          <div class="box dashed" id="preview"></div>
+          <p class="cap">Preview made on your device. It never gets sent.</p>
+        </div>
+        <button class="btn" id="send" type="button" style="margin-top:auto">Send key to the enclave</button>
+        <div class="status" id="sendmsg" role="status"></div>
+      </div>
+
+      <div class="card enc lit" id="c-enclave">
+        <div class="eyebrow"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>Inside the enclave</div>
+        <div class="bigline">Your key becomes <span id="ntr1">300</span> training pairs, generated here on the GPU.</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div class="kv"><span>Training pairs</span><span id="ntr2">300</span></div>
+          <div class="kv"><span>Held out for scoring</span><span id="nev">40</span></div>
+          <div class="kv"><span>Trains into</span><span>shared adapter</span></div>
+        </div>
+        <div class="status" id="encstatus" role="status"></div>
+        <div class="bar" id="encbar" hidden><i style="width:0"></i></div>
+        <div class="divide">
+          <div class="eyebrow" style="color:var(--muted)">Stays inside</div>
+          <div class="chips"><span class="chip">your key</span><span class="chip">the <span id="ntr3">300</span> pairs</span><span class="chip">the trained weights</span></div>
+        </div>
+      </div>
+
+      <div class="card" id="c-back">
+        <div class="eyebrow">What comes back to you</div>
+        <div class="field"><div class="lbl">Your token, shown once</div><div class="box" id="mytoken"><span class="muted">appears after you send</span></div><p class="cap">Only this unlocks the skill you taught.</p></div>
+        <div class="field"><div class="lbl">Commitment to your key</div><div class="box" id="mycommit"><span class="muted">sha256(salt + key)</span></div><p class="cap" id="saltcap">Later, prove your key went in without revealing it.</p></div>
+        <div class="field"><div class="lbl">Your row in the ledger</div><div class="box" id="myrow"><span class="muted">appears when your version is signed</span></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <h2 class="sh"><span class="num">02</span>One shared model, updated at each step</h2>
+    <div class="vgrid" id="vcards"></div>
+    <p class="cap" style="font-size:14px">Each contribution trains the version before it. Open Replay to see what every update changed.</p>
+  </section>
+
+  <section class="sec">
+    <h2 class="sh"><span class="num">03</span>Use what you added</h2>
+    <div class="grid2">
+      <div class="card">
+        <div class="field" id="dskillwrap"><label for="dskill">Your skill</label><select id="dskill"></select></div>
+        <div class="field"><label for="dtext">Ciphertext in your cipher</label><input id="dtext" class="mono" maxlength="200" spellcheck="false" autocomplete="off" placeholder="KHOOR ZRUOG"></div>
+        <button class="btn" id="dgo" type="button">Decode with my token</button>
+        <div class="box" id="dout"><span class="muted">The decoded text appears here.</span></div>
+        <p class="cap" id="dnote"></p>
+      </div>
+      <div class="card">
+        <div class="lbl">Same request with another party's token</div>
+        <div class="box refuse" id="rout">401 · this token can't use maya's cipher</div>
+        <p class="cap" style="font-size:14px;color:var(--muted)">The skill sits in the shared weights. The enclave app only answers for a cipher when its contributor's token comes with the request.</p>
+        <button class="btn ghost small" id="rgo" type="button" style="align-self:flex-start">Try it with another token</button>
+      </div>
+    </div>
+  </section>
+
+  <a class="cta" href="#replay">See the recorded run, version by version <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+</main>
+
+<!-- ======================= REPLAY ======================= -->
+<main id="v-replay" class="view rp" hidden>
+  <div class="srcbar srcbar-slot"></div>
+  <section class="phead">
+    <h1>Replay the run</h1>
+    <p>In this demo each party's private data is a cipher: a secret way of scrambling letters. The model trains on examples of it, then is tested on scrambled messages it has not seen. KHOOR, for instance, should come back as HELLO. Step through the run to see how many it gets right after each contribution.</p>
+    <div class="penv" id="rpenv"></div>
+  </section>
+
+  <section class="psec" style="gap:16px">
+    <div class="stepper"><button class="pbtn" id="play" type="button">Play</button><span id="vbtns" style="display:contents"></span></div>
+    <div class="story" aria-live="polite"><div class="h" id="narr1"></div><div class="s" id="narr2"></div></div>
+  </section>
+
+  <section class="psec">
+    <div class="sechead"><h2>How well the model decodes each party's cipher</h2>
+      <div class="scale">0.00 <i></i> 1.00 of test messages decoded</div></div>
+    <div class="scrollx" tabindex="0" role="region" aria-label="Scores for each cipher at each version"><div class="grid" id="heat"></div></div>
+    <p class="pnote" id="hmcap"></p>
+  </section>
+
+  <section class="psec" id="keptsec">
+    <h2 id="kepth"></h2>
+    <div class="legend"><span><i class="lbar"></i>Score at the last version</span><span><i class="ltick"></i>Its highest score at any version</span></div>
+    <div class="krows" id="kept"></div>
+    <p class="ptext">Each contribution trains only on its own data, and that data is deleted afterwards. Earlier ciphers are never shown to the model again, so they fade as new ones are added.</p>
+  </section>
+
+  <p class="contact" hidden></p>
+  <div class="ovbtns"><a class="pri" href="#verify">Audit the run <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></div>
+</main>
+
+<!-- ======================= VERIFY ======================= -->
+<main id="v-verify" class="view vf" hidden>
+  <div class="srcbar srcbar-slot"></div>
+  <section class="phead">
+    <h1>Audit the run</h1>
+    <p>There are two kinds of check. Your browser re-checks the signed record of the run itself. The hardware checks were run with Tinfoil's verifier when the run was saved, and you can run them again with one command.</p>
+    <div class="penv" id="vfenv"></div>
+  </section>
+
+  <section class="vcards">
+    <div class="vc">
+      <div class="top2"><div class="eye">Checked in your browser, just now</div><h2>The signed record</h2></div>
+      <div id="checks" style="display:flex;flex-direction:column;gap:20px"></div>
+      <div class="vfoot">
+        <div>Try it: change one byte of a past version and watch the checks fail.</div>
+        <div class="tbtns"><button class="tbtn" id="tamper" type="button">Change one byte</button><button class="tbtn" id="restore" type="button">Restore the record</button></div>
+        <div class="tstat" id="tampermsg" role="status"></div>
+      </div>
+    </div>
+    <div class="vc hw" id="hwcard"></div>
+  </section>
+
+  <section class="psec">
+    <h2>What this does and does not show</h2>
+    <div class="shows">
+      <div><div class="k yes">It shows</div><ul>
+        <li>Which code and which base model ran, from the hardware attestation.</li>
+        <li>The order of the updates, and each version's scores and weights hash, from the signed record.</li>
+        <li>That the record was signed by a key that existed only inside that enclave.</li>
+        <li>That no route in the released code returns a key, training data or weights.</li></ul></div>
+      <div><div class="k no">It does not show</div><ul>
+        <li>That the weights still exist. They lived in memory and were gone when the enclave stopped.</li>
+        <li>That the weights hash can be reproduced. Training is not bit-for-bit repeatable, so the hash commits to the weights that existed.</li>
+        <li>That the model keeps training data secret. A model can memorize what it trains on, which is why decoding needs the contributor's token.</li></ul></div>
+    </div>
+  </section>
+
+  <section class="psec">
+    <h2>The ledger</h2>
+    <div class="scrollx" tabindex="0" role="region" aria-label="The signed ledger"><div class="lg" id="ledger"></div></div>
+    <p class="pnote">Each row includes the hash of the row before it, so changing a past row breaks every row after it. The key commitment is a salted hash of the contributor's key; only the contributor holds the salt.</p>
+  </section>
+
+
+  <p class="contact" hidden></p>
+  <div class="ovbtns" id="vfbtns" hidden><a class="sec2" href="#replay">Replay the run</a><a class="sec2" id="vfrepo" href="#" target="_blank" rel="noopener">Code on GitHub</a></div>
+  <a class="cta outline" id="vcta" href="#live">Take a turn on the live model <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+</main>
+
+<input type="file" id="runfile" accept="application/json,.json" hidden>
+</div>
+
+<script id="lib">
+/* ---------- pure helpers (also loaded by tests/test_web.mjs) ---------- */
+const hex = (u8) => Array.from(u8, (b) => b.toString(16).padStart(2, "0")).join("");
+const unhex = (h) => new Uint8Array((h.match(/../g) || []).map((x) => parseInt(x, 16)));
+const b64bytes = (s) => Uint8Array.from(atob(s), (c) => c.charCodeAt(0));
+async function sha256hex(data) {
+  const u8 = typeof data === "string" ? new TextEncoder().encode(data) : data;
+  return hex(new Uint8Array(await crypto.subtle.digest("SHA-256", u8)));
+}
+// JSON with sorted keys: compares a row's fields with the bytes that were signed
+function stable(v) {
+  if (Array.isArray(v)) return "[" + v.map(stable).join(",") + "]";
+  if (v && typeof v === "object") return "{" + Object.keys(v).sort().map((k) => JSON.stringify(k) + ":" + stable(v[k])).join(",") + "}";
+  return JSON.stringify(v);
+}
+
+/* Ed25519 verify (RFC 8032), used when the browser has no WebCrypto Ed25519. */
+const ED = (() => {
+  const P = 2n ** 255n - 19n, L = 2n ** 252n + 27742317777372353535851937790883648493n;
+  const mod = (a, m = P) => { a %= m; return a < 0n ? a + m : a; };
+  const pow = (b, e, m = P) => { let r = 1n; b = mod(b, m); while (e > 0n) { if (e & 1n) r = r * b % m; b = b * b % m; e >>= 1n; } return r; };
+  const inv = (a) => pow(a, P - 2n);
+  const D = mod(-121665n * inv(121666n)), D2 = mod(2n * D), SQRTM1 = pow(2n, (P - 1n) / 4n);
+  const BX = 15112221349535400772501151409588531511454012693041857206046113283949847762202n;
+  const BY = 46316835694926478169428394003475163141307993866256225615783033603165251855960n;
+  const B = [BX, BY, 1n, mod(BX * BY)], ZERO = [0n, 1n, 1n, 0n];
+  const le = (u8) => { let n = 0n; for (let i = u8.length - 1; i >= 0; i--) n = (n << 8n) | BigInt(u8[i]); return n; };
+  function add(p, q) {
+    const [X1, Y1, Z1, T1] = p, [X2, Y2, Z2, T2] = q;
+    const A = mod((Y1 - X1) * (Y2 - X2)), Bb = mod((Y1 + X1) * (Y2 + X2));
+    const C = mod(T1 * D2 * T2), Dd = mod(Z1 * 2n * Z2);
+    const E = Bb - A, F = Dd - C, G = Dd + C, H = Bb + A;
+    return [mod(E * F), mod(G * H), mod(F * G), mod(E * H)];
+  }
+  function mul(p, n) { let r = ZERO; while (n > 0n) { if (n & 1n) r = add(r, p); p = add(p, p); n >>= 1n; } return r; }
+  function decode(u8) {
+    if (u8.length !== 32) return null;
+    const c = u8.slice(); const sign = BigInt(c[31] >> 7); c[31] &= 127;
+    const y = le(c); if (y >= P) return null;
+    const y2 = mod(y * y), u = mod(y2 - 1n), v = mod(D * y2 + 1n), uv = mod(u * inv(v));
+    let x = pow(uv, (P + 3n) / 8n);
+    if (mod(x * x - uv) !== 0n) { x = mod(x * SQRTM1); if (mod(x * x - uv) !== 0n) return null; }
+    if (x === 0n && sign) return null;
+    if ((x & 1n) !== sign) x = P - x;
+    return [x, y, 1n, mod(x * y)];
+  }
+  function encode(p) {
+    const zi = inv(p[2]), x = mod(p[0] * zi), y = mod(p[1] * zi);
+    const out = new Uint8Array(32); let n = y;
+    for (let i = 0; i < 32; i++) { out[i] = Number(n & 255n); n >>= 8n; }
+    out[31] |= Number(x & 1n) << 7; return out;
+  }
+  async function verify(pub, sig, msg) {
+    if (sig.length !== 64) return false;
+    const A = decode(pub), R = decode(sig.slice(0, 32)); if (!A || !R) return false;
+    const S = le(sig.slice(32)); if (S >= L) return false;
+    const buf = new Uint8Array(64 + msg.length); buf.set(sig.slice(0, 32)); buf.set(pub, 32); buf.set(msg, 64);
+    const h = mod(le(new Uint8Array(await crypto.subtle.digest("SHA-512", buf))), L);
+    const lhs = encode(mul(B, S)), rhs = encode(add(R, mul(A, h)));
+    return lhs.every((b, i) => b === rhs[i]);
+  }
+  return { verify };
+})();
+
+async function makeVerifier(pubHex) {
+  const pub = unhex(pubHex);
+  try {
+    const key = await crypto.subtle.importKey("raw", pub, { name: "Ed25519" }, false, ["verify"]);
+    return { how: "WebCrypto", verify: (sig, msg) => crypto.subtle.verify({ name: "Ed25519" }, key, sig, msg) };
+  } catch (e) {
+    return { how: "a built-in JavaScript Ed25519", verify: (sig, msg) => ED.verify(pub, sig, msg) };
+  }
+}
+
+const SIGNED_EXTRAS = ["signed_message_b64", "signature", "row_sha256", "attested_key"];
+/* Checks 1 and 2: signatures over the exact bytes, fields match those bytes, unbroken chain. */
+async function checkLedger(ledger, pubHex) {
+  const v = await makeVerifier(pubHex);
+  const rows = []; let prev = null, sigOk = 0, chainBreak = null;
+  for (let i = 0; i < ledger.length; i++) {
+    const r = ledger[i], msg = b64bytes(r.signed_message_b64);
+    let sig = false;
+    try { sig = await v.verify(unhex(r.signature), msg); } catch (e) { sig = false; }
+    let same = false;
+    try {
+      const fields = {}; for (const k of Object.keys(r)) if (!SIGNED_EXTRAS.includes(k)) fields[k] = r[k];
+      same = stable(JSON.parse(new TextDecoder().decode(msg))) === stable(fields);
+    } catch (e) { same = false; }
+    const link = r.prev_row_sha256 === prev && r.version === i;
+    if (!link && chainBreak === null) chainBreak = i;
+    const valid = sig && same; if (valid) sigOk++;
+    rows.push({ valid, sig, same, link });
+    prev = await sha256hex(msg);
+  }
+  return { how: v.how, rows, sigOk, chainBreak };
+}
+
+/* Hardware report: base64 (gzip for v2) of an AMD SEV-SNP report or an Intel TDX quote. */
+async function gunzip(u8) {
+  const ds = new DecompressionStream("gzip");
+  const out = new Response(new Blob([u8]).stream().pipeThrough(ds));
+  return new Uint8Array(await out.arrayBuffer());
+}
+async function parseReport(doc) {
+  let u8 = b64bytes(doc.body);
+  if (u8[0] === 0x1f && u8[1] === 0x8b) u8 = await gunzip(u8);
+  const f = doc.format || "";
+  if (f.includes("sev-snp")) return { platform: "AMD SEV-SNP", registers: [hex(u8.slice(0x90, 0xC0))], report_data: hex(u8.slice(0x50, 0x90)) };
+  if (f.includes("tdx")) {
+    const at = (o) => hex(u8.slice(48 + o, 48 + o + 48));   // TD quote body starts after the 48-byte header
+    return { platform: "Intel TDX", registers: [at(136), at(328), at(376), at(424), at(472)], report_data: hex(u8.slice(48 + 520, 48 + 584)) };
+  }
+  throw new Error("unknown attestation format " + f);
+}
+const ED25519_SPKI_PREFIX = "302a300506032b6570032100";
+
+/* Narration for one version: the version line, then what changed. */
+const isCipher = (kind) => kind === "caesar" || kind === "substitution";
+function modelName(r, env) {
+  const m = (env && env.model_name) || (r.base_model || "").split("/").pop();
+  return /^mpk-/.test(m) ? "pinned base model" : m;
+}
+function narrHead(st, k) {
+  const r = st.ledger[k];
+  if (r.event === "base") return `v${k} · base model · ${modelName(r, st.env)}`;
+  if (r.event === "forget") return `v${k} · forget`;
+  const task = (st.sets.find((s) => s.id === r.contributor) || {}).task || (r.kind === "caesar" ? "Caesar shift" : "scrambled alphabet");
+  return `v${k} · ${r.contributor} added ${isCipher(r.kind) ? "a " : ""}${task} · ${Math.round(r.train_seconds)} s of training`;
+}
+function narrate(st, k) {
+  const row = st.ledger[k], acc = st.accuracy, f = (x) => x == null ? "—" : x.toFixed(2);
+  const val = (id, c) => (acc[id] || [])[c];
+  const g0 = val("general", k - 1), g1 = val("general", k);
+  const general = g1 == null ? "" : g0 == null || Math.abs(g1 - g0) < 0.005 ? `Everyday questions stayed at ${f(g1)}.` : `Everyday questions went from ${f(g0)} to ${f(g1)}.`;
+  if (row.event === "base") return `Before any contribution, the model decodes none of the test messages.${g1 == null ? "" : ` Everyday questions score ${f(g1)}.`}`;
+  if (row.event === "forget") return "Every contributor's key, data and adapter weights were dropped. The model is back to its base weights; the signed record stays.";
+  const c = row.contributor, what = isCipher(row.kind) ? "cipher" : ((st.sets.find((s) => s.id === c) || {}).task || "data");
+  const a = val(c, k - 1), b = val(c, k);
+  let s = a != null && b != null && Math.abs(b - a) < 0.005 ? `${c}'s ${what} stayed at ${f(b)}.` : `${c}'s ${what} went from ${f(a)} to ${f(b)}.`;
+  const skip = (x) => x.id === "general" || x.kind === "composition" || x.kind === "general";
+  const earlier = st.sets.filter((x) => !skip(x) && x.id !== c && val(x.id, k - 1) != null);
+  if (!earlier.length) s += " There was no earlier cipher to lose.";
+  else {
+    let w = null;
+    for (const x of earlier) { const p = val(x.id, k - 1), q = val(x.id, k); if (q != null && q < p - 1e-9 && (!w || q - p < w.d)) w = { id: x.label, p, q, d: q - p }; }
+    s += !w ? " No earlier cipher lost accuracy." : earlier.length === 1 ? ` ${w.id}'s fell from ${f(w.p)} to ${f(w.q)}.` : ` ${w.id}'s fell the most, from ${f(w.p)} to ${f(w.q)}.`;
+  }
+  return `${s} ${general}`.trim();
+}
+</script>
+
+<script>
+/* ---------- app ---------- */
+const CFG = window.SEALED_STATIC || null;   // set by build_site.py for the static Vercel site
+const STATIC = !!CFG;
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const short = (h, n = 4) => h ? `${h.slice(0, n)}…${h.slice(-n)}` : "—";
+const f2 = (x) => x == null ? "—" : x.toFixed(2);
+const ARROW = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
+const ICON = {
+  pass: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M5 12l5 5L20 7"/></svg>',
+  fail: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+  na: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M7 12h10"/></svg>',
+  wait: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><circle cx="12" cy="12" r="2"/></svg>',
+  play: '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4l13 8-13 8z"/></svg>',
+  pause: '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 4h4v16H6zM14 4h4v16h-4z"/></svg>',
+};
+
+let LIVE = null;        // latest /state from the enclave app
+let RUN = null;         // a saved run (static site, or opened from a file)
+let view = "live";
+let sel = null;         // selected version in Replay (null = follow the latest)
+let playing = null;
+let tampered = null;    // {k, ledger} when the user tampered with a row
+
+/* ---------- my submissions (this browser only) ---------- */
+const STORE = "sealed-weights.mine";
+function mine() { try { return JSON.parse(localStorage.getItem(STORE) || "[]"); } catch (e) { return []; } }
+function saveMine(list) { try { localStorage.setItem(STORE, JSON.stringify(list.slice(-20))); } catch (e) { /* private mode: keep in memory only */ } }
+let MINE_MEM = mine();
+function myLatest(st) {
+  const names = new Set((st?.contributors || []).map((c) => c.name));
+  return [...MINE_MEM].reverse().find((m) => names.has(m.name) && m.host === location.host) || null;
+}
+
+/* ---------- data sources ---------- */
+function liveState() { return STATIC ? RUN?.state : LIVE; }
+function runState() { return RUN ? RUN.state : LIVE; }
+function runEnv() { return (RUN && (RUN.environment || RUN.state.env)) || LIVE?.env || {}; }
+const gpuShort = (g) => !g ? "" : /nvidia/i.test(g) ? g.replace(/nvidia\s*/i, "").split(/\s+/)[0] : g.toUpperCase();
+function runDate() {
+  const t = RUN?.saved_at || (RUN?.state.ledger[0] && new Date(RUN.state.ledger[0].timestamp * 1000).toISOString());
+  return t ? new Date(t).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "";
+}
+
+function badge() {
+  const dot = $("envdot"), txt = $("envtext");
+  const useRun = RUN && (STATIC || view !== "live");
+  if (useRun) {
+    const e = runEnv(), where = e.mode === "enclave" ? `${gpuShort(e.gpu)} run` : "run, not attested";
+    const lead = view === "verify" ? "Checking the recorded" : view === "replay" ? "Replay · recorded" : "Recorded";
+    txt.textContent = `${CFG?.preview ? "Preview, not for publishing · " : ""}${lead} ${where} · ${runDate()}`;
+    dot.className = "dot";
+  } else if (LIVE) {
+    const e = LIVE.env || {};
+    if (e.mode === "enclave") { txt.textContent = `Tinfoil ${gpuShort(e.gpu)} enclave · attested key${e.release_tag ? " · " + e.release_tag : ""}`; dot.className = "dot on"; }
+    else { txt.textContent = "Not attested"; dot.className = "dot"; }
+  } else { txt.textContent = STATIC ? "Loading the recorded run…" : "Connecting…"; dot.className = "dot"; }
+}
+
+/* ---------- routing ---------- */
+function route() {
+  view = (location.hash.slice(1) || "live").split("?")[0];
+  if (view === "overview") view = "live";
+  if (!["live", "replay", "verify"].includes(view)) view = "live";
+  for (const v of ["live", "replay", "verify"]) $("v-" + v).hidden = v !== view || (v === "live" && STATIC);
+  $("v-overview").hidden = !(STATIC && view === "live");
+  $("envbadge").hidden = STATIC;   // the static pages show the run line in the page
+  document.querySelectorAll(".tabs a").forEach((a) => { if (a.dataset.view === view) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current"); });
+  render();
+}
+window.addEventListener("hashchange", () => { route(); window.scrollTo(0, 0); });
+matchMedia("(max-width: 640px)").addEventListener("change", () => { if (view === "replay") renderReplay(); });
+
+function render() {
+  badge(); srcbar();
+  if (view === "live") STATIC ? renderOverview() : renderLive();
+  if (view === "replay") renderReplay();
+  if (view === "verify") renderVerify();
+}
+
+/* source bar: which run Replay/Verify are showing */
+function srcbar() {
+  const html = STATIC
+    ? `<span>Showing the recorded run${view === "verify" ? ` · <a href="${esc(CFG.run)}" download>download the run record (JSON)</a>` : ""}</span>`
+    : RUN
+      ? `<span>Showing a saved run: <b class="mono">${esc(RUN.name || "run")}</b> · ${esc(runDate())}</span> <button class="btn ghost small" type="button" data-act="backlive">Back to the live run</button>`
+      : `<span>Showing the live run.</span> <button class="btn ghost small" type="button" data-act="openrun">Open a saved run…</button>`;
+  document.querySelectorAll(".srcbar-slot").forEach((el) => { el.hidden = STATIC; if (el.dataset.html !== html) { el.innerHTML = html; el.dataset.html = html; } });
+}
+document.addEventListener("click", (e) => {
+  const act = e.target.closest("[data-act]")?.dataset.act;
+  if (act === "openrun") $("runfile").click();
+  if (act === "backlive") { RUN = null; sel = null; tampered = null; lastCheckKey = ""; render(); }
+});
+$("runfile").addEventListener("change", async (e) => {
+  const file = e.target.files[0]; if (!file) return;
+  try { loadRun(JSON.parse(await file.text()), file.name.replace(/\.json$/, "")); }
+  catch (err) { alert("That file isn't a Sealed Weights run record: " + err.message); }
+  e.target.value = "";
+});
+function loadRun(run, name) {
+  if (!run?.state?.ledger) throw new Error("missing state.ledger");
+  RUN = { name, ...run }; sel = null; tampered = null; lastCheckKey = ""; render();
+}
+
+/* ---------- LIVE view ---------- */
+const WORDS = "apple river stone cloud green house light money table water night bread chair music paper sound plant smile dream heart storm train beach field glass honey lemon mango ocean piano queen robot shark tiger vault wheat zebra amber bloom crane delta ember frost grape hatch ivory jolly karma lunar maple noble orbit pearl quilt raven solar tulip ultra vivid whale yield blaze coral drift eagle flame ghost".split(" ");
+const ABC = "abcdefghijklmnopqrstuvwxyz";
+const spaced = (s) => s.split(" ").map((w) => w.toUpperCase().split("").join(" ")).join(" / ");
+let previewWords = [];
+function shufflePick() { const w = [...WORDS]; for (let i = w.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [w[i], w[j]] = [w[j], w[i]]; } return w.slice(0, 3); }
+function randomAlphabet() {
+  for (;;) { const a = ABC.split(""); for (let i = 25; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } if (a.every((c, i) => c !== ABC[i])) return a.join(""); }
+}
+function keyOf() {
+  if ($("ck").value === "caesar") { const k = Number($("sh").value); return Number.isInteger(k) && k >= 1 && k <= 25 ? k : null; }
+  const a = $("al").value.trim().toLowerCase(); return a.length === 26 && new Set(a).size === 26 && [...a].every((c) => ABC.includes(c)) ? a : null;
+}
+function encrypt(s, kind, key) { return s.split("").map((c) => { const i = ABC.indexOf(c); if (i < 0) return c; return kind === "caesar" ? ABC[(i + key) % 26] : key[i]; }).join(""); }
+function renderPreview() {
+  const kind = $("ck").value; $("shiftwrap").hidden = kind !== "caesar"; $("alphawrap").hidden = kind === "caesar";
+  const key = keyOf();
+  if (key == null) { $("preview").innerHTML = `<span class="muted">${kind === "caesar" ? "Pick a shift from 1 to 25." : "Use each letter a–z exactly once, or press Randomize."}</span>`; return; }
+  $("preview").innerHTML = previewWords.map((w) => `<div class="pair"><span class="muted">${esc(spaced(encrypt(w, kind, key)))}</span><span class="muted">→</span><span>${esc(spaced(w))}</span></div>`).join("");
+}
+$("ck").addEventListener("change", () => { if ($("ck").value !== "caesar" && !$("al").value) $("al").value = randomAlphabet(); renderPreview(); });
+$("sh").addEventListener("input", renderPreview);
+$("al").addEventListener("input", renderPreview);
+$("rnd").addEventListener("click", () => { $("al").value = randomAlphabet(); renderPreview(); });
+
+async function api(path, body) {
+  const r = await fetch(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  let j = {}; try { j = await r.json(); } catch (e) { /* non-JSON error */ }
+  return { ok: r.ok, status: r.status, body: j };
+}
+$("send").addEventListener("click", async () => {
+  const name = $("nm").value.trim().toLowerCase(), kind = $("ck").value, key = keyOf();
+  const msg = $("sendmsg"); msg.className = "status";
+  if (!/^[a-z0-9-]{2,16}$/.test(name)) { msg.className = "status err"; msg.textContent = "Name: 2–16 characters of a–z, 0–9 or '-'."; return; }
+  if (key == null) { msg.className = "status err"; msg.textContent = "Fix the key first."; return; }
+  $("send").disabled = true; msg.textContent = "Sending…";
+  const r = await api("submit_cipher", { name, kind, key });
+  $("send").disabled = false;
+  if (!r.ok) { msg.className = "status err"; msg.textContent = `${r.status} · ${r.body.detail || "request failed"}`; return; }
+  MINE_MEM.push({ name, kind, token: r.body.token, salt: r.body.salt, commitment: r.body.commitment, host: location.host, at: Date.now() });
+  saveMine(MINE_MEM);
+  msg.textContent = `Sent. ${name} is number ${r.body.queue_position} in the queue.`;
+  poll();
+});
+
+function vcardHTML(st, r, cur) {
+  const time = r.event === "train" ? `${Math.round(r.train_seconds)} s` : "";
+  let who, delta;
+  if (r.event === "base") { who = "base model"; delta = esc(r.weights_root ? `pinned ${short(r.weights_root)}` : (r.base_model || "").split("/").pop()); }
+  else if (r.event === "forget") { who = "forget"; delta = "secrets and adapter dropped"; }
+  else {
+    who = "+ " + r.contributor;
+    const before = (st.accuracy[r.contributor] || [])[r.version - 1], after = (st.accuracy[r.contributor] || [])[r.version];
+    delta = `${esc(r.contributor)} ${f2(before)} → ${f2(after)}`;
+  }
+  return `<div class="vcard${cur ? " now" : ""}"><div class="vtop"><span>v${r.version}</span><span>${time}</span></div><div class="vwho">${esc(who)}</div><div class="vdelta">${delta}</div></div>`;
+}
+
+function renderLive() {
+  const st = liveState();
+  for (const id of ["nm", "ck", "sh", "al", "rnd", "send", "dskill", "dtext", "dgo", "rgo"]) $(id).disabled = STATIC || !st?.ready;
+  if (!st) { $("vcards").innerHTML = `<div class="cap">${STATIC ? "Loading the recorded run…" : "Waiting for the enclave app…"}</div>`; return; }
+  const hp = st.hyperparams || {};
+  for (const id of ["ntr1", "ntr2", "ntr3"]) $(id).textContent = hp.n_train ?? "";
+  $("nev").textContent = hp.n_eval ?? "";
+
+  // stage lights: browser -> enclave -> back to you
+  const me = STATIC ? null : myLatest(st);
+  const meC = me && st.contributors.find((c) => c.name === me.name);
+  const stage = !meC ? 0 : meC.status === "trained" ? 2 : 1;
+  $("c-browser").classList.toggle("lit", !STATIC && stage === 0);
+  $("c-enclave").classList.toggle("lit", STATIC || stage === 1 || stage === 0);
+  $("c-back").classList.toggle("lit", stage === 2);
+
+  let es = "", pct = null;
+  if (!st.ready) es = st.error ? `Model failed to load: ${st.error}` : "Loading the model…";
+  else if (meC && meC.status === "queued") { const ahead = Math.max(0, st.contributors.filter((c) => c.status === "queued").findIndex((c) => c.name === me.name)) + (st.current ? 1 : 0); es = `${me.name} is queued · ${ahead} ahead`; }
+  else if (st.current) {
+    const p = st.progress || {}; es = `Training ${st.current} now · ${p.phase || ""} ${p.total ? `${p.done} of ${p.total}` : ""}`;
+    pct = p.total ? (100 * p.done / p.total) : null;
+  } else if (meC && meC.status === "trained") es = `${me.name} is trained into v${meC.version}.`;
+  else if (meC && meC.status === "error") es = `${me.name} failed: ${meC.error}`;
+  else es = `Idle · ${st.queue_length} queued`;
+  if (STATIC) { es = `Recorded run: ${st.ledger.length - 1} contributions, each trained, scored and signed as a new version.`; pct = null; }
+  $("encstatus").textContent = es;
+  $("encbar").hidden = pct == null; if (pct != null) $("encbar").firstElementChild.style.width = pct.toFixed(0) + "%";
+
+  if (me) {
+    $("mytoken").textContent = me.token;
+    $("mycommit").textContent = me.commitment;
+    $("saltcap").innerHTML = `Later, prove your key went in without revealing it. Salt (saved in this browser): <span class="mono">${esc(me.salt)}</span>`;
+    const row = meC && meC.version != null ? st.ledger[meC.version] : null;
+    $("myrow").innerHTML = row ? `v${row.version} · row ${esc(short(row.row_sha256, 6))}` : `<span class="muted">appears when v${st.ledger.length + Math.max(0, st.contributors.filter((c) => c.status === "queued" || c.status === "training").findIndex((c) => c.name === me.name))} is signed</span>`;
+  }
+
+  // 02 versions
+  const cards = st.ledger.map((r) => vcardHTML(st, r, false));
+  for (const c of STATIC ? [] : st.contributors.filter((c) => c.status === "training" || c.status === "queued")) {
+    const v = cards.length;
+    const p = st.progress || {};
+    cards.push(c.status === "training"
+      ? `<div class="vcard now"><div class="vtop"><span>v${v}</span><span>${p.total ? `${p.done}/${p.total}` : ""}</span></div><div class="vwho">+ ${esc(c.name)}</div><div class="vdelta">training now…</div></div>`
+      : `<div class="vcard queued"><div class="vtop"><span>v${v}</span><span></span></div><div class="vwho">+ ${esc(c.name)}</div><div class="vdelta">queued</div></div>`);
+  }
+  const html = cards.join("");
+  if ($("vcards").dataset.html !== html) { $("vcards").innerHTML = html; $("vcards").dataset.html = html; }
+
+  // 03 decode
+  if (STATIC) {
+    const ex = (RUN.decode_examples || [])[0];
+    $("dskillwrap").hidden = true;
+    if (ex) {
+      $("dtext").value = ex.ciphertext;
+      $("dout").innerHTML = `${esc(ex.plaintext.toUpperCase())} <span class="muted">· v${ex.version} weights ${esc(short(ex.weights_sha256))}</span>`;
+      $("dnote").textContent = `Recorded from ${ex.skill}'s token on the enclave. Decoding needs the live enclave.`;
+      $("rout").textContent = ex.other_token ? `${ex.other_token.status} · ${ex.other_token.detail}` : `401 · this token can't use ${ex.skill}'s cipher`;
+    } else $("dnote").textContent = "Decoding needs the live enclave.";
+    $("rgo").hidden = true;
+    return;
+  }
+  const opts = MINE_MEM.filter((m) => m.host === location.host && st.contributors.some((c) => c.name === m.name)).reverse();
+  const ohtml = opts.length ? opts.map((m) => `<option value="${esc(m.name)}">${esc(m.name)}</option>`).join("") : `<option value="">(send a key first)</option>`;
+  if ($("dskill").dataset.html !== ohtml) { const keep = $("dskill").value; $("dskill").innerHTML = ohtml; $("dskill").dataset.html = ohtml; if (opts.some((m) => m.name === keep)) $("dskill").value = keep; }
+  if (!routReal) $("rout").textContent = `401 · this token can't use ${$("dskill").value || opts[0]?.name || "maya"}'s cipher`;
+}
+let routReal = false;   // true once the box shows a real response from the enclave
+$("dskill").addEventListener("change", () => { routReal = false; renderLive(); });
+$("dgo").addEventListener("click", async () => {
+  const m = MINE_MEM.find((x) => x.name === $("dskill").value && x.host === location.host);
+  if (!m) { $("dout").innerHTML = `<span class="muted">Send a key first; your token is kept in this browser.</span>`; return; }
+  const text = $("dtext").value.trim() || $("dtext").placeholder;
+  $("dgo").disabled = true; $("dout").innerHTML = `<span class="muted">Decoding inside the enclave…</span>`;
+  const r = await api("decode", { token: m.token, skill: m.name, ciphertext: text });
+  $("dgo").disabled = false;
+  $("dout").innerHTML = r.ok ? `${esc(r.body.plaintext.toUpperCase())} <span class="muted">· v${r.body.version} weights ${esc(short(r.body.weights_sha256))}</span>` : `<span style="color:var(--bad)">${r.status} · ${esc(r.body.detail || "error")}</span>`;
+});
+$("rgo").addEventListener("click", async () => {
+  const name = $("dskill").value; if (!name) return;
+  const fake = Array.from(crypto.getRandomValues(new Uint8Array(18)), (b) => b.toString(16).padStart(2, "0")).join("");
+  const r = await api("decode", { token: fake, skill: name, ciphertext: $("dtext").value.trim() || "KHOOR" });
+  routReal = true; $("rout").textContent = `${r.status} · ${r.body.detail || ""}`;
+});
+
+/* ---------- OVERVIEW (static showcase) ---------- */
+const LOCK = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>';
+const CHECK = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" role="img" aria-label="correct"><path d="M5 12l5 5L20 7"/></svg>';
+const DEMO_ALPHA = "qwertyuiopasdfghjklzxcvbnm";   // demo key for the cycling examples only, not a contributor's
+const PUBLIC_DEMO = { "demo-caesar": "shift 3" };  // seeded skills whose key is public: the only decodes we show
+const NUMW = ["No", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Eleven", "Twelve"];
+const SKIP = (s) => s.id === "general" || s.kind === "composition" || s.kind === "general";
+let cycTimer = null, ovKey = "";
+
+function ovEnv() {   // the environment badge for the Overview, from the run
+  const e = runEnv(), enc = e.mode === "enclave";
+  const where = RUN?.sample ? "made-up numbers, signed with a throwaway key" : enc ? `Tinfoil ${gpuShort(e.gpu)} enclave${e.release_tag ? " · " + e.release_tag : ""}` : "not attested";
+  $("ovenv").textContent = RUN?.sample ? "Layout sample · made-up numbers, signed with a throwaway key" : `Recorded run · ${where}`;
+  $("ovprev").hidden = !(CFG?.preview || RUN?.sample);
+  $("ovprev").textContent = previewLabel();
+  $("ovdot").className = "dot" + (enc && runState()?.attested_key ? " on" : "");
+  $("ovdate").textContent = runDate();
+}
+
+function largestDrop(st, r) {   // the earlier skill that fell most at this version
+  const prev = r.version - 1;
+  const earlier = st.sets.filter((s) => !SKIP(s) && s.id !== r.contributor && (st.accuracy[s.id] || [])[prev] != null);
+  if (!earlier.length) return { text: "no earlier cipher", hit: false };
+  let worst = null;
+  for (const s of earlier) {
+    const x = st.accuracy[s.id][prev], y = (st.accuracy[s.id] || [])[r.version];
+    if (y != null && y < x - 1e-9 && (!worst || y - x < worst.d)) worst = { id: s.label, d: y - x };
+  }
+  return worst ? { text: `${worst.id} −${Math.abs(worst.d).toFixed(2)}`, hit: true, d: worst.d } : { text: "no drop", hit: false };
+}
+
+function renderOverview() {
+  const st = runState(); if (!st) return;
+  ovEnv();
+  const key = st.ledger.map((r) => r.row_sha256).join("");
+  if (key === ovKey) return; ovKey = key;
+  const rows = st.ledger, hp = st.hyperparams || {}, e = runEnv();
+  const acc = (id, v) => (st.accuracy[id] || [])[v];
+  const trains = rows.filter((r) => r.event === "train");
+
+  // the run, version by version
+  const own = trains.map((r) => ({ r, a: acc(r.contributor, r.version - 1), b: acc(r.contributor, r.version) }));
+  const drops = trains.map((r) => largestDrop(st, r));
+  const secs = trains.map((r) => r.train_seconds).sort((a, b) => a - b);
+  const med = secs.length ? Math.round(secs.length % 2 ? secs[(secs.length - 1) / 2] : (secs[secs.length / 2 - 1] + secs[secs.length / 2]) / 2) : 0;
+  const g = gpuShort(e.gpu);
+  const gpu = `one ${g || "GPU"}`;
+  const nW = NUMW[trains.length] || String(trains.length);
+  let sum = `${nW} contribution${trains.length === 1 ? "" : "s"}, each about ${med} s of training on ${gpu}.`;
+  const afters = own.map((o) => o.b).filter((x) => x != null), befores = own.map((o) => o.a).filter((x) => x != null);
+  const lo = afters.length ? Math.min(...afters) : 0;
+  if (!afters.length || lo === 0) sum += " In this run the model did not learn every cipher; see the rows below.";
+  else {
+    const hiBefore = befores.length ? Math.max(...befores) : 0;
+    sum += hiBefore === 0 ? " Before a party contributed, the model decoded none of that party's test messages."
+      : ` Before a party contributed, the model decoded at most ${Math.round(hiBefore * 100)} in 100 of that party's test messages.`;
+    sum += ` Afterwards it decoded at least ${Math.floor(lo * 100 + 1e-9)} in 100.`;
+  }
+  if (drops.some((d) => d.hit)) sum += " Each new contribution also made the model somewhat worse at the ciphers it had learned earlier, because it never sees earlier data again.";
+  $("runsum").textContent = sum;
+
+  let h = "";
+  for (const r of rows) {
+    const meta = `${r.event === "train" ? Math.round(r.train_seconds) + " s · " : ""}${short(r.weights_sha256)}`;
+    if (r.event === "base") {
+      const name = modelName(r);
+      const gen = acc("general", r.version);
+      h += `<div class="vrow"><div class="who"><span class="v">v${r.version}</span><b>base model</b></div><div class="detail">${esc([name, r.weights_root ? `pinned ${short(r.weights_root)}` : RUN?.sample ? "not pinned (layout sample)" : "not pinned", gen != null ? `general ${f2(gen)}` : ""].filter(Boolean).join(" · "))}</div><div class="meta">${esc(short(r.weights_sha256))}</div></div>`;
+      continue;
+    }
+    if (r.event !== "train") {
+      h += `<div class="vrow"><div class="who"><span class="v">v${r.version}</span><b>${esc(r.event)}</b></div><div class="detail">Keys, data and adapter dropped; the record stays.</div><div class="meta">${esc(meta)}</div></div>`;
+      continue;
+    }
+    const i = trains.indexOf(r), { a, b } = own[i], d = drops[i];
+    h += `<div class="vrow"><div class="who"><span class="v">v${r.version}</span><b>+ ${esc(r.contributor)}</b></div>
+      <div class="score"><div class="bar" role="img" aria-label="${esc(r.contributor)} after: ${f2(b)}"><i style="width:${Math.round((b || 0) * 100)}%"></i></div><div class="num"><span>${f2(a)} →</span> ${f2(b)}</div></div>
+      <div class="drop${d.hit ? " hit" : ""}">${esc(d.text)}</div><div class="meta">${esc(meta)}</div></div>`;
+  }
+  $("vrows").innerHTML = h;
+
+  const scored = Math.min(hp.acc_n || hp.n_eval || 0, hp.n_eval || Infinity);
+  const gen = (st.accuracy.general || []).filter((x) => x != null);
+  const gmin = Math.min(...gen), gmax = Math.max(...gen);
+  $("runfoot").textContent = `Each score is the share of ${scored} test messages decoded exactly right. The test messages are a held-out set: made from the party's key and never used in training. Scoring runs inside the enclave after every version. `
+    + (!gen.length ? "" : gmin === gmax ? `Accuracy on everyday questions stayed at ${f2(gmin)} throughout.` : `Accuracy on everyday questions ranged from ${f2(gmin)} to ${f2(gmax)}.`);
+
+  // how one contribution becomes a version: the first contribution of the run
+  const first = trains.find((r) => r.kind === "caesar" || r.kind === "substitution") || trains[0];
+  const kind = first?.kind === "substitution" ? "substitution" : "caesar";
+  const pairs = shufflePick().map((w) => `${spaced(encrypt(w, kind, kind === "substitution" ? DEMO_ALPHA : 3))} → ${spaced(w)}`);
+  const v = first ? first.version : 1;
+  $("steps").innerHTML = `
+    <div class="szone you"><div class="slabel">The contributor</div>
+      <div class="step"><span class="n">1</span><b>Sends private data</b><p>Here, a cipher key: a Caesar shift or a scrambled alphabet. It stands in for a private dataset.</p></div></div>
+    <div class="szone enc"><div class="slabel">${LOCK}Inside the enclave</div><div class="sinner">
+      <div class="step"><span class="n">2</span><b>The key becomes private training data</b><div class="ex cyc" id="cyc">${esc(pairs[0])}</div><p>${first?.n_train ?? hp.n_train} pairs to train on, ${hp.n_eval} held out for scoring.</p></div>
+      <div class="step"><span class="n">3</span><b>The model trains and is scored</b><div class="ex">v${v - 1} → v${v}${first ? ` · ${Math.round(first.train_seconds)} s` : ""}</div><p>One shared LoRA adapter. Every party's skill is re-scored.</p></div>
+      <div class="step"><span class="n">4</span><b>The new version is signed</b><div class="ex">weights ${esc(short(first?.weights_sha256))} <span id="sigok" class="muted">checking…</span></div><p>With a key generated inside the enclave at boot.</p></div>
+    </div></div>`;
+  clearInterval(cycTimer); let ci = 0;
+  cycTimer = setInterval(() => { const el = $("cyc"); if (!el) return; el.classList.add("out"); setTimeout(() => { ci = (ci + 1) % pairs.length; el.textContent = pairs[ci]; el.classList.remove("out"); }, 450); }, 2200);
+  if (first) checkLedger(rows, st.public_key).then((L) => {
+    const ok = L.rows[first.version]?.valid && L.chainBreak == null, el = $("sigok");
+    if (el) { el.className = ok ? "signed" : ""; el.style.color = ok ? "" : "var(--bad)"; el.textContent = ok ? "signed ✓" : "signature doesn't verify"; }
+  });
+
+  // decode cards: only a recorded, correct decode of a public demo key
+  const exs = RUN?.decode_examples || [];
+  const good = exs.find((x) => x.correct === true && PUBLIC_DEMO[x.skill] && x.other_token);
+  const other = good || exs.find((x) => x.other_token);
+  const demo = good?.skill || Object.keys(PUBLIC_DEMO)[0];
+  const card1 = good
+    ? `<div class="dline"><span>${esc(good.ciphertext.toUpperCase())}</span><span class="arr">→</span><span class="yes">${esc(good.plaintext.toUpperCase())}</span><span class="yes">${CHECK}</span></div>`
+    : `<div class="dpend">Recorded during the enclave run</div>`;
+  const card2 = other
+    ? `<div class="dline"><span>${esc(other.ciphertext.toUpperCase())}</span><span class="arr">→</span><span class="no">${esc(other.other_token.status)} refused</span></div>`
+    : `<div class="dpend">Recorded during the enclave run</div>`;
+  $("dcards").innerHTML = `<div class="dcard"><div class="lbl">Decode request with ${esc(demo)}'s token</div>${card1}</div>
+    <div class="dcard"><div class="lbl">The same request with any other token</div>${card2}</div>`;
+}
+
+/* ---------- shared: the environment line on Replay and Verify ---------- */
+const previewLabel = () => RUN?.sample ? "Layout sample, not a real run" : "Preview, not for publishing";
+function envLine() {
+  const e = runEnv();
+  if (RUN?.sample) return `Made-up numbers · signed with a throwaway key · ${runDate()}`;
+  if (RUN) return `Recorded run · ${e.mode === "enclave" ? `Tinfoil ${gpuShort(e.gpu)} enclave${e.release_tag ? " · " + e.release_tag : ""}` : "not attested"} · ${runDate()}`;
+  if (LIVE) { const l = LIVE.env || {}; return l.mode === "enclave" ? `Live run · Tinfoil ${gpuShort(l.gpu)} enclave${l.release_tag ? " · " + l.release_tag : ""}` : "Live run · not attested"; }
+  return STATIC ? "Loading the recorded run…" : "Connecting…";
+}
+function penv(id, download) {
+  const html = `<span>${esc(envLine())}</span>${CFG?.preview || RUN?.sample ? `<span class="ovprev">${esc(previewLabel())}</span>` : ""}`
+    + (download && STATIC ? `<a href="${esc(CFG.run)}" download>Download the run record (JSON)</a>` : "");
+  if ($(id).dataset.html !== html) { $(id).innerHTML = html; $(id).dataset.html = html; }
+}
+const niceDate = (t) => t ? new Date(t).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "";
+
+/* ---------- REPLAY view ---------- */
+const vname = (r) => r.event === "base" ? "base model" : r.event === "forget" ? "forget" : "+ " + r.contributor;
+function cellStyle(x, on) {   // fill follows the score; text keeps 4.5:1 on every fill
+  if (x == null) return "background:var(--empty);color:var(--muted)";
+  const a = on ? (x < 0.5 ? 0.12 + x * 0.76 : 0.65 + (x - 0.5) * 0.7) : 0.06 + 0.3 * x;
+  return `background:rgba(124,196,250,${a.toFixed(3)});color:${on && x >= 0.5 ? "var(--bg)" : "var(--ink)"}`;
+}
+
+function renderReplay() {
+  penv("rpenv");
+  const st = runState();
+  if (!st || !st.ledger.length) { $("narr2").textContent = "No versions yet."; return; }
+  const rows = st.ledger, n = rows.length, k = sel == null ? n - 1 : Math.min(sel, n - 1), last = n - 1;
+  const acc = (id, v) => (st.accuracy[id] || [])[v], hp = st.hyperparams || {};
+  $("play").textContent = playing ? "Pause" : "Play";
+  $("vbtns").innerHTML = rows.map((r, i) => `<button class="vbtn" type="button" data-v="${i}" aria-pressed="${i === k}"><span class="i">v${i}</span><span class="n">${esc(vname(r))}</span></button>`).join("");
+  $("narr1").textContent = narrHead(st, k);
+  $("narr2").textContent = narrate(st, k);
+
+  // the grid: one row per contribution, then everyday questions and the stacked pair
+  const trains = rows.filter((r) => r.event === "train");
+  const setOf = (id) => st.sets.find((x) => x.id === id) || {};
+  const phone = matchMedia("(max-width: 640px)").matches;
+  const grows = trains.map((r) => ({ id: r.contributor, label: r.contributor, sub: phone ? `added at v${r.version}` : `${setOf(r.contributor).task || r.kind || ""} · added at v${r.version}` }));
+  grows.push({ id: "general", label: "everyday questions", sub: phone ? "never trained" : "general ability, never trained here", gap: true });
+  const comp = st.sets.find((x) => x.kind === "composition");
+  if (comp) grows.push({ id: comp.id, label: comp.label.split("+").join(" + "), sub: phone ? "never trained" : "stacked, never trained" });
+  const narrow = matchMedia("(max-width: 640px)").matches, lab = narrow ? 112 : 240;
+  // phones: size columns so a whole number of them (at least 3) fits beside the names
+  const avail = $("heat").parentElement.clientWidth - lab;
+  const cmin = narrow && avail > 0 ? Math.floor(avail / Math.max(3, Math.floor(avail / 64))) - 5 : 64;
+  const nrows = 1 + grows.length + 1;   // header, rows, and the spacer before everyday questions
+  let h = `<div class="gband" style="grid-column:${k + 2};grid-row:1 / span ${nrows}" aria-hidden="true"></div><div class="glab" style="grid-row:1;grid-column:1"></div>`;
+  h += rows.map((r, i) => `<div class="gch${i === k ? " sel" : ""}" style="grid-row:1;grid-column:${i + 2}">v${i}</div>`).join("");
+  let gr = 2;
+  for (const g of grows) {
+    if (g.gap) h += `<div class="gsp" style="grid-row:${gr++};grid-column:1 / -1"></div>`;
+    h += `<div class="glab" style="grid-row:${gr};grid-column:1"><b>${g.label.split(" ").map((w) => `<i>${esc(w)}</i>`).join(" ")}</b><span>${esc(g.sub)}</span></div>`;
+    for (let i = 0; i < n; i++) { const x = acc(g.id, i); h += `<div class="gc${i === k ? " sel" : ""}" style="grid-row:${gr};grid-column:${i + 2};${cellStyle(x, i === k)}">${x == null ? "–" : f2(x)}</div>`; }
+    gr++;
+  }
+  const grid = $("heat");
+  // phones: fixed column widths, so padding the end never shifts the columns
+  grid.style.gridTemplateColumns = narrow ? `${lab}px repeat(${n}, ${cmin}px)` : `${lab}px repeat(${n}, minmax(${cmin}px, 1fr))`;
+  const minW = lab + n * (cmin + 4) + 6;
+  grid.style.minWidth = `${minW}px`;
+  grid.innerHTML = h;
+  // keep the selected column in view (phones), clear of the pinned name column
+  const box = grid.parentElement;
+  if (box.scrollWidth > box.clientWidth) {
+    const hc = [...grid.querySelectorAll(".gch")], start = (j) => Math.max(0, hc[j].offsetLeft - lab - 4);
+    const end = (j) => hc[j].offsetLeft + hc[j].offsetWidth;
+    let j = hc.findIndex((c, i) => start(i) >= box.scrollLeft - 1); if (j < 0) j = hc.length - 1;
+    if (k < j) j = k;
+    while (j < k && start(j) + box.clientWidth < end(k) + 2) j++;
+    // pad the end so the last scroll position also starts on a whole column
+    const extra = start(j) + box.clientWidth - box.scrollWidth;
+    if (extra > 0) grid.style.minWidth = `${minW + extra}px`;
+    box.scrollLeft = start(j);
+  }
+  const scored = Math.min(hp.acc_n || hp.n_eval || 0, hp.n_eval || Infinity);
+  const zeroBefore = trains.every((r) => !acc(r.contributor, r.version - 1));
+  $("hmcap").textContent = `Each box is one test. The model is given ${scored} encrypted messages it has never seen, written in that party's cipher, and the number is the share it turned back into the right words. 1.00 means all ${scored}. A dash means that party had not contributed yet. `
+    + (zeroBefore ? "The 0.00 just before a party's own version is the score before the model trained on its cipher." : "The number just before a party's own version is the score before the model trained on its cipher.")
+    + " Tests run inside the enclave.";
+
+  // what is left of each contribution at the last version
+  $("keptsec").hidden = trains.length < 2;
+  $("kepth").textContent = `What is left of each contribution at v${last}`;
+  $("kept").innerHTML = trains.map((r) => {
+    const now = acc(r.contributor, last) ?? 0;
+    let best = 0; for (let v = 0; v <= last; v++) best = Math.max(best, acc(r.contributor, v) ?? 0);
+    return `<div class="krow"><div class="nm">${esc(r.contributor)}</div><div class="tr" role="img" aria-label="${esc(r.contributor)}: ${f2(now)} now, ${f2(best)} at its highest"><i style="width:${Math.round(now * 100)}%"></i><b style="left:calc(${Math.round(best * 100)}% - 1px)"></b></div><div class="tx">${f2(now)} now · ${f2(best)} at its best</div></div>`;
+  }).join("");
+}
+$("vbtns").addEventListener("click", (e) => { const b = e.target.closest(".vbtn"); if (!b) return; stop(); sel = Number(b.dataset.v); renderReplay(); });
+function stop() { if (playing) { clearInterval(playing); playing = null; } }
+$("play").addEventListener("click", () => {
+  const st = runState(); if (!st) return;
+  if (playing) { stop(); renderReplay(); return; }
+  sel = 0;
+  playing = setInterval(() => { const m = runState().ledger.length; if (sel >= m - 1) stop(); else sel++; renderReplay(); }, 1600);
+  renderReplay();
+});
+
+/* ---------- VERIFY view ---------- */
+let lastCheckKey = "";
+const tamperRow = (n) => n >= 2 ? Math.max(1, n - 2) : 0;
+function checkRow(status, title, detail) { return `<div class="ck"><div class="ic ${status}">${ICON[status]}</div><div><b>${title}</b><p>${detail}</p></div></div>`; }
+
+async function computeChecks(st, ledger) {
+  const n = ledger.length, L = await checkLedger(ledger, st.public_key);
+  const bad = L.rows.findIndex((r) => !r.valid);
+  const out = [bad < 0
+    ? ["pass", "Every version is signed by the same key", `${L.sigOk} of ${n} signatures valid, checked here with Ed25519 over the exact bytes that were signed.`]
+    : ["fail", "Every version is signed by the same key", `${L.sigOk} of ${n} signatures valid. v${bad}'s signature no longer matches its record.`]];
+  out.push(L.chainBreak == null
+    ? ["pass", "The record is one unbroken chain", n > 1 ? `Each of v1 to v${n - 1} includes the hash of the version before it, back to v0, the base model.` : "Only v0 so far; it starts the chain."]
+    : ["fail", "The record is one unbroken chain", `v${L.chainBreak} no longer matches the hash of v${L.chainBreak - 1}. Something before it changed.`]);
+  return { out, L };
+}
+
+async function renderVerify() {
+  penv("vfenv", true);
+  const st = runState();
+  hwCard(st);
+  if (!st) { $("checks").innerHTML = checkRow("wait", "Waiting for the run record…", ""); return; }
+  const ledger = tampered ? tampered.ledger : st.ledger;
+  $("tamper").textContent = `Change one byte of v${tamperRow(st.ledger.length)}`;
+  const key = (tampered ? "T" : "") + ledger.map((r) => r.row_sha256).join("") + (RUN ? RUN.name : "live");
+  if (key === lastCheckKey) return;
+  lastCheckKey = key;
+  const { out, L } = await computeChecks(st, ledger);
+  $("checks").innerHTML = out.map((c) => checkRow(...c)).join("");
+  let h = `<div class="r hd"><span>Version</span><span>Contribution</span><span>Previous row</span><span>Weights after</span><span>Key commitment</span><span class="sig">Signature</span></div>`;
+  ledger.forEach((r, i) => {
+    const sig = !L.rows[i].valid ? ["invalid", "bad"] : L.chainBreak != null && i >= L.chainBreak ? ["chain broken", "bad"] : ["valid", "ok"];
+    h += `<div class="r"><span class="m">v${r.version}</span><span>${esc(r.event === "train" ? r.contributor : r.event === "base" ? "base model" : r.event)}</span><span class="m" title="${esc(r.prev_row_sha256 || "")}">${esc(short(r.prev_row_sha256, 6))}</span><span title="${esc(r.weights_sha256)}">${esc(short(r.weights_sha256, 6))}</span><span class="m" title="${esc(r.commitment || "")}">${esc(short(r.commitment, 6))}</span><span class="sig ${sig[1]}">${sig[0]}</span></div>`;
+  });
+  $("ledger").innerHTML = h;
+}
+
+/* card 2: the hardware checks, from the verification saved with the run */
+function hwCard(st) {
+  const v = RUN?.verification, e = runEnv(), host = RUN?.attestation?.enclave_host || (STATIC ? "" : location.host);
+  const repo = e.repo || e.config_repo || "Andrew-Forman/sealed-weights", tag = e.release_tag;
+  const file = `runs/${(RUN && RUN.name) || "<name>"}.json`;
+  const head = (eye, off) => `<div class="top2"><div class="eye${off ? " off" : ""}">${esc(eye)}</div><h2>The enclave that produced it</h2></div>`;
+  let h;
+  if (v) {
+    const by = Object.fromEntries((v.checks || []).map((c) => [c.id, c]));
+    const row = (c, title, passText) => !c ? checkRow("na", title, "Not in the saved verification.")
+      : c.status === "pass" ? checkRow("pass", title, passText(c))
+      : c.status === "not_checked" ? checkRow("na", title, `Not checked: ${esc(c.detail)}`)
+      : checkRow("fail", title, esc(c.detail || "failed"));
+    const rel = by.release, rtag = rel?.release_tag || tag;
+    h = head(`Checked against the hardware, on ${niceDate(v.checked_at)}`)
+      + row(rel, rtag ? `The enclave ran release ${esc(rtag)} of this repo` : "The enclave ran the published release of this repo",
+        (c) => `The hardware's signed measurement equals the measurement Sigstore logged for the release. <a href="${esc(c.release_url)}" target="_blank" rel="noopener">Release${rtag ? " " + esc(rtag) : ""}</a> · <a href="${esc(c.sigstore_url)}" target="_blank" rel="noopener">Sigstore entry</a>`)
+      + row(by.weights, "The base model is the pinned one",
+        (c) => `v0 records weights root <span class="mono">${esc(short(c.weights_root, 6))}</span>, the one pinned in the release's config, which the measurement covers.`)
+      + row(by.signing_key, "The signing key was generated inside the enclave",
+        (c) => `The key that signed every version is listed in the hardware attestation as attested key <span class="mono">${esc(c.key_id)}</span>.${c.source === "cli_at_snapshot" ? " Checked by Tinfoil's CLI when the run was saved." : ""}`)
+      + `<div class="vfoot"><div>Run these checks yourself from the repo:</div><pre class="wcmd">python client.py verify --run ${esc(file)}</pre>
+         <div class="sm">It validates the chip maker's signature on the saved hardware report and fetches the release from Sigstore.${STATIC && CFG.verifyOutput ? ` <a href="${esc(CFG.verifyOutput)}" target="_blank" rel="noopener">Output from ${esc(niceDate(v.checked_at))}</a>` : ""}</div></div>`;
+  } else if (!RUN && LIVE?.env?.mode === "enclave") {
+    h = head("Check it live, while it runs")
+      + `<p class="ptext" style="font-size:15px">This enclave is running now. Check its hardware attestation against the published release:</p>
+         <pre class="wcmd">tinfoil attestation verify -e ${esc(host)} --repo ${esc(repo)}${tag ? "@" + esc(tag) : ""}\n\n# save this run with its attestation\npython client.py --enclave ${esc(host)} --repo ${esc(repo)} snapshot --out runs/&lt;name&gt;.json --watch</pre>`;
+  } else if (RUN?.sample) {
+    h = head("Not available for this run", true) + `<p class="ptext" style="font-size:15px">This is a layout sample with made-up numbers. There was no enclave to check.</p>`;
+  } else if (e.mode !== "enclave") {
+    h = head("Not available for this run", true) + `<p class="ptext" style="font-size:15px">This run wasn't signed with an attested key, so there is no hardware attestation to check.</p>`;
+  } else {
+    h = head("Not checked yet", true) + `<p class="ptext" style="font-size:15px">The hardware checks for this run haven't been saved yet. Run them and save the result into the run record:</p><pre class="wcmd">python client.py verify --run ${esc(file)} --save</pre>`;
+  }
+  if ($("hwcard").dataset.html !== h) { $("hwcard").innerHTML = h; $("hwcard").dataset.html = h; }
+}
+
+$("tamper").addEventListener("click", () => {
+  const st = runState(); if (!st) return;
+  const ledger = JSON.parse(JSON.stringify(st.ledger)), k = tamperRow(ledger.length);
+  const bytes = b64bytes(ledger[k].signed_message_b64), text = new TextDecoder().decode(bytes);
+  let at = text.indexOf('"accuracy":{'); at = at < 0 ? 0 : at;
+  let i = at; while (i < bytes.length && !(bytes[i] >= 48 && bytes[i] <= 57)) i++;
+  if (i >= bytes.length) i = Math.floor(bytes.length / 2);
+  const from = String.fromCharCode(bytes[i]); bytes[i] = bytes[i] >= 48 && bytes[i] <= 56 ? bytes[i] + 1 : bytes[i] === 57 ? 56 : bytes[i] ^ 1;
+  ledger[k].signed_message_b64 = btoa(String.fromCharCode(...bytes));
+  tampered = { k, ledger };
+  $("tampermsg").textContent = `Changed one byte of v${k}'s record in this browser only (${from} → ${String.fromCharCode(bytes[i])}).`;
+  lastCheckKey = ""; renderVerify();
+});
+$("restore").addEventListener("click", () => { tampered = null; lastCheckKey = ""; $("tampermsg").textContent = ""; renderVerify(); });
+
+/* ---------- boot ---------- */
+async function poll() {
+  try { const r = await fetch("state", { cache: "no-store" }); if (r.ok) { LIVE = await r.json(); } } catch (e) { /* keep last state */ }
+  render();
+}
+async function boot() {
+  previewWords = shufflePick();
+  $("nm").value = ""; renderPreview();
+  if (STATIC) {
+    document.querySelector('.tabs a[data-view="live"]').textContent = "Overview";
+    document.querySelector('.tabs a[data-view="live"]').href = "#overview";
+    $("ovrepo").href = CFG.repo;
+    $("vcta").hidden = true; $("vfbtns").hidden = false; $("vfrepo").href = CFG.repo;
+    {   // phones: the comparison table as one block per question, same text
+      const heads = [...document.querySelectorAll(".cmp thead th")].map((th) => th.textContent);
+      $("cmpstack").innerHTML = [...document.querySelectorAll(".cmp tbody tr")].map((tr) => {
+        const cells = [...tr.querySelectorAll("td")];
+        return `<section class="cmpq"><h3>${esc(tr.querySelector("th").textContent)}</h3>${cells.map((td, i) =>
+          `<div class="${td.classList.contains("sealed") ? "sealed" : ""}"><b>${esc(heads[i])}</b><span>${esc(td.textContent)}</span></div>`).join("")}</section>`;
+      }).join("");
+    }
+    if (/^[A-Za-z0-9_]{1,15}$/.test(CFG.xHandle || "")) document.querySelectorAll(".contact").forEach((el) => {
+      el.innerHTML = `Built by Andrew Forman at LOCALHOST, on Tinfoil Containers. Working on confidential AI, or on training with data that can't be pooled? DM <a href="https://x.com/${CFG.xHandle}" target="_blank" rel="noopener">@${CFG.xHandle}</a> on X.`;
+      el.hidden = false;
+    });
+    $("ovvideo").innerHTML = CFG.video
+      ? `<video controls preload="metadata" playsinline src="${esc(CFG.video)}"${CFG.poster ? ` poster="${esc(CFG.poster)}"` : ""}></video>`
+      : `<div class="ovph"><div class="disc"><svg width="24" height="24" viewBox="0 0 24 24" fill="#0d1117" aria-hidden="true"><path d="M8 5l11 7-11 7z"/></svg></div><div>Demo video</div></div>`;
+    try { const r = await fetch(CFG.run, { cache: "no-store" }); loadRun(await r.json(), CFG.name || "run"); }
+    catch (e) { $("envtext").textContent = "Couldn't load the run record"; $("ovenv").textContent = "Couldn't load the run record"; }
+  }
+  route();
+  if (!STATIC) { poll(); setInterval(poll, 3000); }
+}
+boot();
+</script>
+</body>
+</html>

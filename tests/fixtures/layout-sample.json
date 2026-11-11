@@ -1,0 +1,1254 @@
+{
+ "schema": "sealed-weights-run/1",
+ "name": "layout-sample",
+ "sample": true,
+ "note": "MADE-UP numbers for judging the page layout. Not a real run; nothing was trained.",
+ "source": {
+  "kind": "sample",
+  "host": null
+ },
+ "states_by_version": {
+  "5": {
+   "ready": true,
+   "error": null,
+   "device": "NVIDIA H200",
+   "model_path": "Qwen/Qwen2.5-1.5B-Instruct",
+   "config_repo": "Andrew-Forman/sealed-weights",
+   "hyperparams": {
+    "epochs": 2,
+    "lr": 0.0002,
+    "lora_r": 16,
+    "batch_size": 8,
+    "n_train": 300,
+    "n_eval": 40,
+    "acc_n": 40,
+    "lora_targets": "q_proj,k_proj,v_proj,o_proj,gate_proj,up_proj,down_proj"
+   },
+   "max_queue": 5,
+   "public_key": "36c384ed740b2c1d649aadbe4df259e020a229688fb73ad4385706ad91684a48",
+   "attested_key": false,
+   "env": {
+    "mode": "sample",
+    "gpu": "NVIDIA H200",
+    "release_tag": null,
+    "model_path": "Qwen/Qwen2.5-1.5B-Instruct",
+    "model_name": "Qwen2.5-1.5B-Instruct",
+    "weights_root": null,
+    "config_repo": "Andrew-Forman/sealed-weights"
+   },
+   "contributors": [
+    {
+     "name": "demo-caesar",
+     "kind": "caesar",
+     "task": "Caesar shift",
+     "commitment": "b875e0546605493e8c3050cc781bb26a93a7fa09ed77391c9909897cdc443898",
+     "status": "trained",
+     "version": 1,
+     "error": null,
+     "n_train": 300,
+     "n_eval": 40,
+     "submitted_at": 1794423803
+    },
+    {
+     "name": "demo-atbash",
+     "kind": "substitution",
+     "task": "scrambled alphabet",
+     "commitment": "06c9a9e05c92461e7fef4178820949ee1d3ddac46baab11d28b525d909c195bc",
+     "status": "trained",
+     "version": 2,
+     "error": null,
+     "n_train": 300,
+     "n_eval": 40,
+     "submitted_at": 1794423863
+    },
+    {
+     "name": "maya",
+     "kind": "caesar",
+     "task": "Caesar shift",
+     "commitment": "44ffbe63022b11bc6b69815fb0514be9d62d88452dc0b463385b20ba62730453",
+     "status": "trained",
+     "version": 3,
+     "error": null,
+     "n_train": 300,
+     "n_eval": 40,
+     "submitted_at": 1794423923
+    },
+    {
+     "name": "lena",
+     "kind": "substitution",
+     "task": "scrambled alphabet",
+     "commitment": "e6ffda3e0aad6264c8cb364ddfa2cafd674a0d9b1f68ba83ee01c6c54e0a2cd0",
+     "status": "trained",
+     "version": 4,
+     "error": null,
+     "n_train": 300,
+     "n_eval": 40,
+     "submitted_at": 1794423983
+    },
+    {
+     "name": "rosa",
+     "kind": "caesar",
+     "task": "Caesar shift",
+     "commitment": "c877c6cbe6a30afd165b58a737ef45a0091c0e231414db207f9151bf47652f5e",
+     "status": "trained",
+     "version": 5,
+     "error": null,
+     "n_train": 300,
+     "n_eval": 40,
+     "submitted_at": 1794424043
+    }
+   ],
+   "queue_length": 0,
+   "current": null,
+   "progress": null,
+   "current_version": 5,
+   "versions": [
+    "base",
+    "demo-caesar",
+    "demo-atbash",
+    "maya",
+    "lena",
+    "rosa"
+   ],
+   "sets": [
+    {
+     "id": "demo-caesar",
+     "label": "demo-caesar",
+     "kind": "caesar",
+     "task": "Caesar shift",
+     "status": "trained"
+    },
+    {
+     "id": "demo-atbash",
+     "label": "demo-atbash",
+     "kind": "substitution",
+     "task": "scrambled alphabet",
+     "status": "trained"
+    },
+    {
+     "id": "maya",
+     "label": "maya",
+     "kind": "caesar",
+     "task": "Caesar shift",
+     "status": "trained"
+    },
+    {
+     "id": "lena",
+     "label": "lena",
+     "kind": "substitution",
+     "task": "scrambled alphabet",
+     "status": "trained"
+    },
+    {
+     "id": "rosa",
+     "label": "rosa",
+     "kind": "caesar",
+     "task": "Caesar shift",
+     "status": "trained"
+    },
+    {
+     "id": "general",
+     "label": "general",
+     "kind": "general",
+     "task": "everyday questions"
+    },
+    {
+     "id": "composition",
+     "label": "demo-caesar+demo-atbash",
+     "kind": "composition",
+     "task": "two ciphers stacked, never trained"
+    }
+   ],
+   "accuracy": {
+    "demo-caesar": [
+     0,
+     0.83,
+     0.25,
+     0.2,
+     0.18,
+     0.15
+    ],
+    "demo-atbash": [
+     null,
+     0,
+     1,
+     0.92,
+     0.8,
+     0.72
+    ],
+    "maya": [
+     null,
+     null,
+     0,
+     0.9,
+     0.6,
+     0.52
+    ],
+    "lena": [
+     null,
+     null,
+     null,
+     0,
+     0.95,
+     0.72
+    ],
+    "rosa": [
+     null,
+     null,
+     null,
+     null,
+     0,
+     0.88
+    ],
+    "general": [
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0
+    ],
+    "composition": [
+     null,
+     0,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "loss": {
+    "demo-caesar": [
+     2.45,
+     0.458,
+     1.85,
+     1.97,
+     2.018,
+     2.09
+    ],
+    "demo-atbash": [
+     null,
+     2.45,
+     0.05,
+     0.242,
+     0.53,
+     0.722
+    ],
+    "maya": [
+     null,
+     null,
+     2.45,
+     0.29,
+     1.01,
+     1.202
+    ],
+    "lena": [
+     null,
+     null,
+     null,
+     2.45,
+     0.17,
+     0.722
+    ],
+    "rosa": [
+     null,
+     null,
+     null,
+     null,
+     2.45,
+     0.338
+    ],
+    "general": [
+     0.05,
+     0.05,
+     0.05,
+     0.05,
+     0.05,
+     0.05
+    ],
+    "composition": [
+     null,
+     2.45,
+     2.45,
+     2.45,
+     2.45,
+     2.45
+    ]
+   },
+   "ledger": [
+    {
+     "version": 0,
+     "event": "base",
+     "contributor": null,
+     "kind": null,
+     "commitment": null,
+     "n_train": 0,
+     "base_model": "Qwen/Qwen2.5-1.5B-Instruct",
+     "weights_root": null,
+     "release_tag": null,
+     "device": "NVIDIA H200",
+     "hyperparams": {
+      "epochs": 2,
+      "lr": 0.0002,
+      "lora_r": 16,
+      "batch_size": 8,
+      "n_train": 300,
+      "n_eval": 40,
+      "acc_n": 40,
+      "lora_targets": "q_proj,k_proj,v_proj,o_proj,gate_proj,up_proj,down_proj"
+     },
+     "train_steps": 0,
+     "train_seconds": 0.0,
+     "accuracy": {
+      "demo-caesar": 0,
+      "general": 1.0
+     },
+     "loss": {
+      "demo-caesar": 2.45,
+      "general": 0.05
+     },
+     "baseline_before": {},
+     "weights_sha256": "ccbfcf1eec1a7bcc57ee1b38bffc7e59df206e0c436173c986307de9d2e95cf3",
+     "prev_weights_sha256": null,
+     "prev_row_sha256": null,
+     "timestamp": 1794423773,
+     "signed_message_b64": "eyJhY2N1cmFjeSI6eyJkZW1vLWNhZXNhciI6MCwiZ2VuZXJhbCI6MS4wfSwiYmFzZV9tb2RlbCI6IlF3ZW4vUXdlbjIuNS0xLjVCLUluc3RydWN0IiwiYmFzZWxpbmVfYmVmb3JlIjp7fSwiY29tbWl0bWVudCI6bnVsbCwiY29udHJpYnV0b3IiOm51bGwsImRldmljZSI6Ik5WSURJQSBIMjAwIiwiZXZlbnQiOiJiYXNlIiwiaHlwZXJwYXJhbXMiOnsiYWNjX24iOjQwLCJiYXRjaF9zaXplIjo4LCJlcG9jaHMiOjIsImxvcmFfciI6MTYsImxvcmFfdGFyZ2V0cyI6InFfcHJvaixrX3Byb2osdl9wcm9qLG9fcHJvaixnYXRlX3Byb2osdXBfcHJvaixkb3duX3Byb2oiLCJsciI6MC4wMDAyLCJuX2V2YWwiOjQwLCJuX3RyYWluIjozMDB9LCJraW5kIjpudWxsLCJsb3NzIjp7ImRlbW8tY2Flc2FyIjoyLjQ1LCJnZW5lcmFsIjowLjA1fSwibl90cmFpbiI6MCwicHJldl9yb3dfc2hhMjU2IjpudWxsLCJwcmV2X3dlaWdodHNfc2hhMjU2IjpudWxsLCJyZWxlYXNlX3RhZyI6bnVsbCwidGltZXN0YW1wIjoxNzk0NDIzNzczLCJ0cmFpbl9zZWNvbmRzIjowLjAsInRyYWluX3N0ZXBzIjowLCJ2ZXJzaW9uIjowLCJ3ZWlnaHRzX3Jvb3QiOm51bGwsIndlaWdodHNfc2hhMjU2IjoiY2NiZmNmMWVlYzFhN2JjYzU3ZWUxYjM4YmZmYzdlNTlkZjIwNmUwYzQzNjE3M2M5ODYzMDdkZTlkMmU5NWNmMyJ9",
+     "signature": "8ad46e8c5e8c852d8640cf0d9b7f5fe9c440f3e3642ab33582e279acf4350936ccd8646ef0a2751e71d250b32e7aef9c4f125d3295101e772381138b35685c07",
+     "row_sha256": "d5bf0cdb19a72f34bc1fe8814a6e4dd402fa9557040617c4e06505f4a710f86b",
+     "attested_key": false
+    },
+    {
+     "version": 1,
+     "event": "train",
+     "contributor": "demo-caesar",
+     "kind": "caesar",
+     "commitment": "b875e0546605493e8c3050cc781bb26a93a7fa09ed77391c9909897cdc443898",
+     "n_train": 300,
+     "base_model": "Qwen/Qwen2.5-1.5B-Instruct",
+     "weights_root": null,
+     "release_tag": null,
+     "device": "NVIDIA H200",
+     "hyperparams": {
+      "epochs": 2,
+      "lr": 0.0002,
+      "lora_r": 16,
+      "batch_size": 8,
+      "n_train": 300,
+      "n_eval": 40,
+      "acc_n": 40,
+      "lora_targets": "q_proj,k_proj,v_proj,o_proj,gate_proj,up_proj,down_proj"
+     },
+     "train_steps": 76,
+     "train_seconds": 17.2,
+     "accuracy": {
+      "demo-caesar": 0.83,
+      "demo-atbash": 0,
+      "general": 1.0,
+      "composition": 0
+     },
+     "loss": {
+      "demo-caesar": 0.458,
+      "demo-atbash": 2.45,
+      "general": 0.05,
+      "composition": 2.45
+     },
+     "baseline_before": {
+      "demo-caesar": {
+       "accuracy": 0,
+       "loss": 2.45
+      }
+     },
+     "weights_sha256": "f719752bbd1d8d237343e22458710a307f50b5e86ac01a63de6e0ee2552743be",
+     "prev_weights_sha256": "ccbfcf1eec1a7bcc57ee1b38bffc7e59df206e0c436173c986307de9d2e95cf3",
+     "prev_row_sha256": "d5bf0cdb19a72f34bc1fe8814a6e4dd402fa9557040617c4e06505f4a710f86b",
+     "timestamp": 1794423833,
+     "signed_message_b64": "eyJhY2N1cmFjeSI6eyJjb21wb3NpdGlvbiI6MCwiZGVtby1hdGJhc2giOjAsImRlbW8tY2Flc2FyIjowLjgzLCJnZW5lcmFsIjoxLjB9LCJiYXNlX21vZGVsIjoiUXdlbi9Rd2VuMi41LTEuNUItSW5zdHJ1Y3QiLCJiYXNlbGluZV9iZWZvcmUiOnsiZGVtby1jYWVzYXIiOnsiYWNjdXJhY3kiOjAsImxvc3MiOjIuNDV9fSwiY29tbWl0bWVudCI6ImI4NzVlMDU0NjYwNTQ5M2U4YzMwNTBjYzc4MWJiMjZhOTNhN2ZhMDllZDc3MzkxYzk5MDk4OTdjZGM0NDM4OTgiLCJjb250cmlidXRvciI6ImRlbW8tY2Flc2FyIiwiZGV2aWNlIjoiTlZJRElBIEgyMDAiLCJldmVudCI6InRyYWluIiwiaHlwZXJwYXJhbXMiOnsiYWNjX24iOjQwLCJiYXRjaF9zaXplIjo4LCJlcG9jaHMiOjIsImxvcmFfciI6MTYsImxvcmFfdGFyZ2V0cyI6InFfcHJvaixrX3Byb2osdl9wcm9qLG9fcHJvaixnYXRlX3Byb2osdXBfcHJvaixkb3duX3Byb2oiLCJsciI6MC4wMDAyLCJuX2V2YWwiOjQwLCJuX3RyYWluIjozMDB9LCJraW5kIjoiY2Flc2FyIiwibG9zcyI6eyJjb21wb3NpdGlvbiI6Mi40NSwiZGVtby1hdGJhc2giOjIuNDUsImRlbW8tY2Flc2FyIjowLjQ1OCwiZ2VuZXJhbCI6MC4wNX0sIm5fdHJhaW4iOjMwMCwicHJldl9yb3dfc2hhMjU2IjoiZDViZjBjZGIxOWE3MmYzNGJjMWZlODgxNGE2ZTRkZDQwMmZhOTU1NzA0MDYxN2M0ZTA2NTA1ZjRhNzEwZjg2YiIsInByZXZfd2VpZ2h0c19zaGEyNTYiOiJjY2JmY2YxZWVjMWE3YmNjNTdlZTFiMzhiZmZjN2U1OWRmMjA2ZTBjNDM2MTczYzk4NjMwN2RlOWQyZTk1Y2YzIiwicmVsZWFzZV90YWciOm51bGwsInRpbWVzdGFtcCI6MTc5NDQyMzgzMywidHJhaW5fc2Vjb25kcyI6MTcuMiwidHJhaW5fc3RlcHMiOjc2LCJ2ZXJzaW9uIjoxLCJ3ZWlnaHRzX3Jvb3QiOm51bGwsIndlaWdodHNfc2hhMjU2IjoiZjcxOTc1MmJiZDFkOGQyMzczNDNlMjI0NTg3MTBhMzA3ZjUwYjVlODZhYzAxYTYzZGU2ZTBlZTI1NTI3NDNiZSJ9",
+     "signature": "849143774a2271c00005c509a5e6a7f00610093c96edc0143ac7aaddf1dfa5834f69a9ad73586e84ff468298e0c2b1a9f02145a588f3e3488b38286e8edee60d",
+     "row_sha256": "c5eeb8931b94f940c1343d0d25c11a7c4b7558764385a88560b78b853499e9cc",
+     "attested_key": false
+    },
+    {
+     "version": 2,
+     "event": "train",
+     "contributor": "demo-atbash",
+     "kind": "substitution",
+     "commitment": "06c9a9e05c92461e7fef4178820949ee1d3ddac46baab11d28b525d909c195bc",
+     "n_train": 300,
+     "base_model": "Qwen/Qwen2.5-1.5B-Instruct",
+     "weights_root": null,
+     "release_tag": null,
+     "device": "NVIDIA H200",
+     "hyperparams": {
+      "epochs": 2,
+      "lr": 0.0002,
+      "lora_r": 16,
+      "batch_size": 8,
+      "n_train": 300,
+      "n_eval": 40,
+      "acc_n": 40,
+      "lora_targets": "q_proj,k_proj,v_proj,o_proj,gate_proj,up_proj,down_proj"
+     },
+     "train_steps": 76,
+     "train_seconds": 18.1,
+     "accuracy": {
+      "demo-caesar": 0.25,
+      "demo-atbash": 1,
+      "maya": 0,
+      "general": 1.0,
+      "composition": 0
+     },
+     "loss": {
+      "demo-caesar": 1.85,
+      "demo-atbash": 0.05,
+      "maya": 2.45,
+      "general": 0.05,
+      "composition": 2.45
+     },
+     "baseline_before": {
+      "demo-atbash": {
+       "accuracy": 0,
+       "loss": 2.45
+      },
+      "composition": {
+       "accuracy": 0,
+       "loss": 2.45
+      }
+     },
+     "weights_sha256": "fb58253507170d6476bfa9e039af134f013bef09844837a56871aa01ba1555c8",
+     "prev_weights_sha256": "f719752bbd1d8d237343e22458710a307f50b5e86ac01a63de6e0ee2552743be",
+     "prev_row_sha256": "c5eeb8931b94f940c1343d0d25c11a7c4b7558764385a88560b78b853499e9cc",
+     "timestamp": 1794423893,
+     "signed_message_b64": "eyJhY2N1cmFjeSI6eyJjb21wb3NpdGlvbiI6MCwiZGVtby1hdGJhc2giOjEsImRlbW8tY2Flc2FyIjowLjI1LCJnZW5lcmFsIjoxLjAsIm1heWEiOjB9LCJiYXNlX21vZGVsIjoiUXdlbi9Rd2VuMi41LTEuNUItSW5zdHJ1Y3QiLCJiYXNlbGluZV9iZWZvcmUiOnsiY29tcG9zaXRpb24iOnsiYWNjdXJhY3kiOjAsImxvc3MiOjIuNDV9LCJkZW1vLWF0YmFzaCI6eyJhY2N1cmFjeSI6MCwibG9zcyI6Mi40NX19LCJjb21taXRtZW50IjoiMDZjOWE5ZTA1YzkyNDYxZTdmZWY0MTc4ODIwOTQ5ZWUxZDNkZGFjNDZiYWFiMTFkMjhiNTI1ZDkwOWMxOTViYyIsImNvbnRyaWJ1dG9yIjoiZGVtby1hdGJhc2giLCJkZXZpY2UiOiJOVklESUEgSDIwMCIsImV2ZW50IjoidHJhaW4iLCJoeXBlcnBhcmFtcyI6eyJhY2NfbiI6NDAsImJhdGNoX3NpemUiOjgsImVwb2NocyI6MiwibG9yYV9yIjoxNiwibG9yYV90YXJnZXRzIjoicV9wcm9qLGtfcHJvaix2X3Byb2osb19wcm9qLGdhdGVfcHJvaix1cF9wcm9qLGRvd25fcHJvaiIsImxyIjowLjAwMDIsIm5fZXZhbCI6NDAsIm5fdHJhaW4iOjMwMH0sImtpbmQiOiJzdWJzdGl0dXRpb24iLCJsb3NzIjp7ImNvbXBvc2l0aW9uIjoyLjQ1LCJkZW1vLWF0YmFzaCI6MC4wNSwiZGVtby1jYWVzYXIiOjEuODUsImdlbmVyYWwiOjAuMDUsIm1heWEiOjIuNDV9LCJuX3RyYWluIjozMDAsInByZXZfcm93X3NoYTI1NiI6ImM1ZWViODkzMWI5NGY5NDBjMTM0M2QwZDI1YzExYTdjNGI3NTU4NzY0Mzg1YTg4NTYwYjc4Yjg1MzQ5OWU5Y2MiLCJwcmV2X3dlaWdodHNfc2hhMjU2IjoiZjcxOTc1MmJiZDFkOGQyMzczNDNlMjI0NTg3MTBhMzA3ZjUwYjVlODZhYzAxYTYzZGU2ZTBlZTI1NTI3NDNiZSIsInJlbGVhc2VfdGFnIjpudWxsLCJ0aW1lc3RhbXAiOjE3OTQ0MjM4OTMsInRyYWluX3NlY29uZHMiOjE4LjEsInRyYWluX3N0ZXBzIjo3NiwidmVyc2lvbiI6Miwid2VpZ2h0c19yb290IjpudWxsLCJ3ZWlnaHRzX3NoYTI1NiI6ImZiNTgyNTM1MDcxNzBkNjQ3NmJmYTllMDM5YWYxMzRmMDEzYmVmMDk4NDQ4MzdhNTY4NzFhYTAxYmExNTU1YzgifQ==",
+     "signature": "f4fe93a41f53ee7f889d29ec9ed884161f03192cdc72dfe6a780744c1f70265d80a99aeaab1e8df3a0e8b8adb7b52e94bad0302444d8c3b849d19698bd24c50a",
+     "row_sha256": "ccf3d842fa3b4bdb8fb4125d57dedd47eef9adf83a2ade7335e25f9855e91eea",
+     "attested_key": false
+    },
+    {
+     "version": 3,
+     "event": "train",
+     "contributor": "maya",
+     "kind": "caesar",
+     "commitment": "44ffbe63022b11bc6b69815fb0514be9d62d88452dc0b463385b20ba62730453",
+     "n_train": 300,
+     "base_model": "Qwen/Qwen2.5-1.5B-Instruct",
+     "weights_root": null,
+     "release_tag": null,
+     "device": "NVIDIA H200",
+     "hyperparams": {
+      "epochs": 2,
+      "lr": 0.0002,
+      "lora_r": 16,
+      "batch_size": 8,
+      "n_train": 300,
+      "n_eval": 40,
+      "acc_n": 40,
+      "lora_targets": "q_proj,k_proj,v_proj,o_proj,gate_proj,up_proj,down_proj"
+     },
+     "train_steps": 76,
+     "train_seconds": 16.4,
+     "accuracy": {
+      "demo-caesar": 0.2,
+      "demo-atbash": 0.92,
+      "maya": 0.9,
+      "lena": 0,
+      "general": 1.0,
+      "composition": 0
+     },
+     "loss": {
+      "demo-caesar": 1.97,
+      "demo-atbash": 0.242,
+      "maya": 0.29,
+      "lena": 2.45,
+      "general": 0.05,
+      "composition": 2.45
+     },
+     "baseline_before": {
+      "maya": {
+       "accuracy": 0,
+       "loss": 2.45
+      }
+     },
+     "weights_sha256": "750fab8da2717f2a73d93432581cd12b797b8ede6e26d5016a15b9c36ad7e46b",
+     "prev_weights_sha256": "fb58253507170d6476bfa9e039af134f013bef09844837a56871aa01ba1555c8",
+     "prev_row_sha256": "ccf3d842fa3b4bdb8fb4125d57dedd47eef9adf83a2ade7335e25f9855e91eea",
+     "timestamp": 1794423953,
+     "signed_message_b64": "eyJhY2N1cmFjeSI6eyJjb21wb3NpdGlvbiI6MCwiZGVtby1hdGJhc2giOjAuOTIsImRlbW8tY2Flc2FyIjowLjIsImdlbmVyYWwiOjEuMCwibGVuYSI6MCwibWF5YSI6MC45fSwiYmFzZV9tb2RlbCI6IlF3ZW4vUXdlbjIuNS0xLjVCLUluc3RydWN0IiwiYmFzZWxpbmVfYmVmb3JlIjp7Im1heWEiOnsiYWNjdXJhY3kiOjAsImxvc3MiOjIuNDV9fSwiY29tbWl0bWVudCI6IjQ0ZmZiZTYzMDIyYjExYmM2YjY5ODE1ZmIwNTE0YmU5ZDYyZDg4NDUyZGMwYjQ2MzM4NWIyMGJhNjI3MzA0NTMiLCJjb250cmlidXRvciI6Im1heWEiLCJkZXZpY2UiOiJOVklESUEgSDIwMCIsImV2ZW50IjoidHJhaW4iLCJoeXBlcnBhcmFtcyI6eyJhY2NfbiI6NDAsImJhdGNoX3NpemUiOjgsImVwb2NocyI6MiwibG9yYV9yIjoxNiwibG9yYV90YXJnZXRzIjoicV9wcm9qLGtfcHJvaix2X3Byb2osb19wcm9qLGdhdGVfcHJvaix1cF9wcm9qLGRvd25fcHJvaiIsImxyIjowLjAwMDIsIm5fZXZhbCI6NDAsIm5fdHJhaW4iOjMwMH0sImtpbmQiOiJjYWVzYXIiLCJsb3NzIjp7ImNvbXBvc2l0aW9uIjoyLjQ1LCJkZW1vLWF0YmFzaCI6MC4yNDIsImRlbW8tY2Flc2FyIjoxLjk3LCJnZW5lcmFsIjowLjA1LCJsZW5hIjoyLjQ1LCJtYXlhIjowLjI5fSwibl90cmFpbiI6MzAwLCJwcmV2X3Jvd19zaGEyNTYiOiJjY2YzZDg0MmZhM2I0YmRiOGZiNDEyNWQ1N2RlZGQ0N2VlZjlhZGY4M2EyYWRlNzMzNWUyNWY5ODU1ZTkxZWVhIiwicHJldl93ZWlnaHRzX3NoYTI1NiI6ImZiNTgyNTM1MDcxNzBkNjQ3NmJmYTllMDM5YWYxMzRmMDEzYmVmMDk4NDQ4MzdhNTY4NzFhYTAxYmExNTU1YzgiLCJyZWxlYXNlX3RhZyI6bnVsbCwidGltZXN0YW1wIjoxNzk0NDIzOTUzLCJ0cmFpbl9zZWNvbmRzIjoxNi40LCJ0cmFpbl9zdGVwcyI6NzYsInZlcnNpb24iOjMsIndlaWdodHNfcm9vdCI6bnVsbCwid2VpZ2h0c19zaGEyNTYiOiI3NTBmYWI4ZGEyNzE3ZjJhNzNkOTM0MzI1ODFjZDEyYjc5N2I4ZWRlNmUyNmQ1MDE2YTE1YjljMzZhZDdlNDZiIn0=",
+     "signature": "7c46fe50e94875fe114681efe20df5c6e90a38d992fec7370668a86efe7e2216ab0e2ecd9f8612c8b046f3afdfbaa316270925aa972d265860092a2c12997108",
+     "row_sha256": "0daf580f8d369905df12d28593e9b35c1e921cfc1f91c0f79204fd51a42166b3",
+     "attested_key": false
+    },
+    {
+     "version": 4,
+     "event": "train",
+     "contributor": "lena",
+     "kind": "substitution",
+     "commitment": "e6ffda3e0aad6264c8cb364ddfa2cafd674a0d9b1f68ba83ee01c6c54e0a2cd0",
+     "n_train": 300,
+     "base_model": "Qwen/Qwen2.5-1.5B-Instruct",
+     "weights_root": null,
+     "release_tag": null,
+     "device": "NVIDIA H200",
+     "hyperparams": {
+      "epochs": 2,
+      "lr": 0.0002,
+      "lora_r": 16,
+      "batch_size": 8,
+      "n_train": 300,
+      "n_eval": 40,
+      "acc_n": 40,
+      "lora_targets": "q_proj,k_proj,v_proj,o_proj,gate_proj,up_proj,down_proj"
+     },
+     "train_steps": 76,
+     "train_seconds": 17.0,
+     "accuracy": {
+      "demo-caesar": 0.18,
+      "demo-atbash": 0.8,
+      "maya": 0.6,
+      "lena": 0.95,
+      "rosa": 0,
+      "general": 1.0,
+      "composition": 0
+     },
+     "loss": {
+      "demo-caesar": 2.018,
+      "demo-atbash": 0.53,
+      "maya": 1.01,
+      "lena": 0.17,
+      "rosa": 2.45,
+      "general": 0.05,
+      "composition": 2.45
+     },
+     "baseline_before": {
+      "lena": {
+       "accuracy": 0,
+       "loss": 2.45
+      }
+     },
+     "weights_sha256": "9371f12276e73c41a9f8c49ce16fa3ec2a78bf8605b2482f76010cd9474e79bc",
+     "prev_weights_sha256": "750fab8da2717f2a73d93432581cd12b797b8ede6e26d5016a15b9c36ad7e46b",
+     "prev_row_sha256": "0daf580f8d369905df12d28593e9b35c1e921cfc1f91c0f79204fd51a42166b3",
+     "timestamp": 1794424013,
+     "signed_message_b64": "eyJhY2N1cmFjeSI6eyJjb21wb3NpdGlvbiI6MCwiZGVtby1hdGJhc2giOjAuOCwiZGVtby1jYWVzYXIiOjAuMTgsImdlbmVyYWwiOjEuMCwibGVuYSI6MC45NSwibWF5YSI6MC42LCJyb3NhIjowfSwiYmFzZV9tb2RlbCI6IlF3ZW4vUXdlbjIuNS0xLjVCLUluc3RydWN0IiwiYmFzZWxpbmVfYmVmb3JlIjp7ImxlbmEiOnsiYWNjdXJhY3kiOjAsImxvc3MiOjIuNDV9fSwiY29tbWl0bWVudCI6ImU2ZmZkYTNlMGFhZDYyNjRjOGNiMzY0ZGRmYTJjYWZkNjc0YTBkOWIxZjY4YmE4M2VlMDFjNmM1NGUwYTJjZDAiLCJjb250cmlidXRvciI6ImxlbmEiLCJkZXZpY2UiOiJOVklESUEgSDIwMCIsImV2ZW50IjoidHJhaW4iLCJoeXBlcnBhcmFtcyI6eyJhY2NfbiI6NDAsImJhdGNoX3NpemUiOjgsImVwb2NocyI6MiwibG9yYV9yIjoxNiwibG9yYV90YXJnZXRzIjoicV9wcm9qLGtfcHJvaix2X3Byb2osb19wcm9qLGdhdGVfcHJvaix1cF9wcm9qLGRvd25fcHJvaiIsImxyIjowLjAwMDIsIm5fZXZhbCI6NDAsIm5fdHJhaW4iOjMwMH0sImtpbmQiOiJzdWJzdGl0dXRpb24iLCJsb3NzIjp7ImNvbXBvc2l0aW9uIjoyLjQ1LCJkZW1vLWF0YmFzaCI6MC41MywiZGVtby1jYWVzYXIiOjIuMDE4LCJnZW5lcmFsIjowLjA1LCJsZW5hIjowLjE3LCJtYXlhIjoxLjAxLCJyb3NhIjoyLjQ1fSwibl90cmFpbiI6MzAwLCJwcmV2X3Jvd19zaGEyNTYiOiIwZGFmNTgwZjhkMzY5OTA1ZGYxMmQyODU5M2U5YjM1YzFlOTIxY2ZjMWY5MWMwZjc5MjA0ZmQ1MWE0MjE2NmIzIiwicHJldl93ZWlnaHRzX3NoYTI1NiI6Ijc1MGZhYjhkYTI3MTdmMmE3M2Q5MzQzMjU4MWNkMTJiNzk3YjhlZGU2ZTI2ZDUwMTZhMTViOWMzNmFkN2U0NmIiLCJyZWxlYXNlX3RhZyI6bnVsbCwidGltZXN0YW1wIjoxNzk0NDI0MDEzLCJ0cmFpbl9zZWNvbmRzIjoxNy4wLCJ0cmFpbl9zdGVwcyI6NzYsInZlcnNpb24iOjQsIndlaWdodHNfcm9vdCI6bnVsbCwid2VpZ2h0c19zaGEyNTYiOiI5MzcxZjEyMjc2ZTczYzQxYTlmOGM0OWNlMTZmYTNlYzJhNzhiZjg2MDViMjQ4MmY3NjAxMGNkOTQ3NGU3OWJjIn0=",
+     "signature": "8b6f2e661aa82c6e3c9f8b216bc2fdfe598dbf189b884ec33b5f2050dcad017d8765df4ba529d6671c24fb97fee4f66c71ca7b560f075dafcc0f94e6ea7d260f",
+     "row_sha256": "41be0caa95847ea20c7c8009b49cec10156435463af135c15d67334f5b1b75f5",
+     "attested_key": false
+    },
+    {
+     "version": 5,
+     "event": "train",
+     "contributor": "rosa",
+     "kind": "caesar",
+     "commitment": "c877c6cbe6a30afd165b58a737ef45a0091c0e231414db207f9151bf47652f5e",
+     "n_train": 300,
+     "base_model": "Qwen/Qwen2.5-1.5B-Instruct",
+     "weights_root": null,
+     "release_tag": null,
+     "device": "NVIDIA H200",
+     "hyperparams": {
+      "epochs": 2,
+      "lr": 0.0002,
+      "lora_r": 16,
+      "batch_size": 8,
+      "n_train": 300,
+      "n_eval": 40,
+      "acc_n": 40,
+      "lora_targets": "q_proj,k_proj,v_proj,o_proj,gate_proj,up_proj,down_proj"
+     },
+     "train_steps": 76,
+     "train_seconds": 16.8,
+     "accuracy": {
+      "demo-caesar": 0.15,
+      "demo-atbash": 0.72,
+      "maya": 0.52,
+      "lena": 0.72,
+      "rosa": 0.88,
+      "general": 1.0,
+      "composition": 0
+     },
+     "loss": {
+      "demo-caesar": 2.09,
+      "demo-atbash": 0.722,
+      "maya": 1.202,
+      "lena": 0.722,
+      "rosa": 0.338,
+      "general": 0.05,
+      "composition": 2.45
+     },
+     "baseline_before": {
+      "rosa": {
+       "accuracy": 0,
+       "loss": 2.45
+      }
+     },
+     "weights_sha256": "072780053c562b6abe937cd3ac14dc45f7069d3794cc575ee283c490ccc52d0c",
+     "prev_weights_sha256": "9371f12276e73c41a9f8c49ce16fa3ec2a78bf8605b2482f76010cd9474e79bc",
+     "prev_row_sha256": "41be0caa95847ea20c7c8009b49cec10156435463af135c15d67334f5b1b75f5",
+     "timestamp": 1794424073,
+     "signed_message_b64": "eyJhY2N1cmFjeSI6eyJjb21wb3NpdGlvbiI6MCwiZGVtby1hdGJhc2giOjAuNzIsImRlbW8tY2Flc2FyIjowLjE1LCJnZW5lcmFsIjoxLjAsImxlbmEiOjAuNzIsIm1heWEiOjAuNTIsInJvc2EiOjAuODh9LCJiYXNlX21vZGVsIjoiUXdlbi9Rd2VuMi41LTEuNUItSW5zdHJ1Y3QiLCJiYXNlbGluZV9iZWZvcmUiOnsicm9zYSI6eyJhY2N1cmFjeSI6MCwibG9zcyI6Mi40NX19LCJjb21taXRtZW50IjoiYzg3N2M2Y2JlNmEzMGFmZDE2NWI1OGE3MzdlZjQ1YTAwOTFjMGUyMzE0MTRkYjIwN2Y5MTUxYmY0NzY1MmY1ZSIsImNvbnRyaWJ1dG9yIjoicm9zYSIsImRldmljZSI6Ik5WSURJQSBIMjAwIiwiZXZlbnQiOiJ0cmFpbiIsImh5cGVycGFyYW1zIjp7ImFjY19uIjo0MCwiYmF0Y2hfc2l6ZSI6OCwiZXBvY2hzIjoyLCJsb3JhX3IiOjE2LCJsb3JhX3RhcmdldHMiOiJxX3Byb2osa19wcm9qLHZfcHJvaixvX3Byb2osZ2F0ZV9wcm9qLHVwX3Byb2osZG93bl9wcm9qIiwibHIiOjAuMDAwMiwibl9ldmFsIjo0MCwibl90cmFpbiI6MzAwfSwia2luZCI6ImNhZXNhciIsImxvc3MiOnsiY29tcG9zaXRpb24iOjIuNDUsImRlbW8tYXRiYXNoIjowLjcyMiwiZGVtby1jYWVzYXIiOjIuMDksImdlbmVyYWwiOjAuMDUsImxlbmEiOjAuNzIyLCJtYXlhIjoxLjIwMiwicm9zYSI6MC4zMzh9LCJuX3RyYWluIjozMDAsInByZXZfcm93X3NoYTI1NiI6IjQxYmUwY2FhOTU4NDdlYTIwYzdjODAwOWI0OWNlYzEwMTU2NDM1NDYzYWYxMzVjMTVkNjczMzRmNWIxYjc1ZjUiLCJwcmV2X3dlaWdodHNfc2hhMjU2IjoiOTM3MWYxMjI3NmU3M2M0MWE5ZjhjNDljZTE2ZmEzZWMyYTc4YmY4NjA1YjI0ODJmNzYwMTBjZDk0NzRlNzliYyIsInJlbGVhc2VfdGFnIjpudWxsLCJ0aW1lc3RhbXAiOjE3OTQ0MjQwNzMsInRyYWluX3NlY29uZHMiOjE2LjgsInRyYWluX3N0ZXBzIjo3NiwidmVyc2lvbiI6NSwid2VpZ2h0c19yb290IjpudWxsLCJ3ZWlnaHRzX3NoYTI1NiI6IjA3Mjc4MDA1M2M1NjJiNmFiZTkzN2NkM2FjMTRkYzQ1ZjcwNjlkMzc5NGNjNTc1ZWUyODNjNDkwY2NjNTJkMGMifQ==",
+     "signature": "5193d8b91ec9d29c6f493844bacbe069b0b6fa45bea4285715e6ee4c3589153e5b416d6a6bee0d15f875cb149224422353a32f2d31efbc6b2583b5623b37760e",
+     "row_sha256": "b102bf89b57345a72a2e0aaafc18b49823a4699cbf71f204f03d17413fd4b417",
+     "attested_key": false
+    }
+   ]
+  }
+ },
+ "decode_examples": [
+  {
+   "skill": "demo-caesar",
+   "ciphertext": "KHOOR",
+   "output": "H E L L O",
+   "plaintext": "hello",
+   "version": 5,
+   "expected": "hello",
+   "correct": true,
+   "weights_sha256": "072780053c562b6abe937cd3ac14dc45f7069d3794cc575ee283c490ccc52d0c",
+   "other_token": {
+    "status": 401,
+    "detail": "this token can't use demo-caesar's cipher"
+   },
+   "at": "2026-11-11T19:08:53Z"
+  }
+ ],
+ "saved_at": "2026-11-11T19:08:53Z",
+ "state": {
+  "ready": true,
+  "error": null,
+  "device": "NVIDIA H200",
+  "model_path": "Qwen/Qwen2.5-1.5B-Instruct",
+  "config_repo": "Andrew-Forman/sealed-weights",
+  "hyperparams": {
+   "epochs": 2,
+   "lr": 0.0002,
+   "lora_r": 16,
+   "batch_size": 8,
+   "n_train": 300,
+   "n_eval": 40,
+   "acc_n": 40,
+   "lora_targets": "q_proj,k_proj,v_proj,o_proj,gate_proj,up_proj,down_proj"
+  },
+  "max_queue": 5,
+  "public_key": "36c384ed740b2c1d649aadbe4df259e020a229688fb73ad4385706ad91684a48",
+  "attested_key": false,
+  "env": {
+   "mode": "sample",
+   "gpu": "NVIDIA H200",
+   "release_tag": null,
+   "model_path": "Qwen/Qwen2.5-1.5B-Instruct",
+   "model_name": "Qwen2.5-1.5B-Instruct",
+   "weights_root": null,
+   "config_repo": "Andrew-Forman/sealed-weights"
+  },
+  "contributors": [
+   {
+    "name": "demo-caesar",
+    "kind": "caesar",
+    "task": "Caesar shift",
+    "commitment": "b875e0546605493e8c3050cc781bb26a93a7fa09ed77391c9909897cdc443898",
+    "status": "trained",
+    "version": 1,
+    "error": null,
+    "n_train": 300,
+    "n_eval": 40,
+    "submitted_at": 1794423803
+   },
+   {
+    "name": "demo-atbash",
+    "kind": "substitution",
+    "task": "scrambled alphabet",
+    "commitment": "06c9a9e05c92461e7fef4178820949ee1d3ddac46baab11d28b525d909c195bc",
+    "status": "trained",
+    "version": 2,
+    "error": null,
+    "n_train": 300,
+    "n_eval": 40,
+    "submitted_at": 1794423863
+   },
+   {
+    "name": "maya",
+    "kind": "caesar",
+    "task": "Caesar shift",
+    "commitment": "44ffbe63022b11bc6b69815fb0514be9d62d88452dc0b463385b20ba62730453",
+    "status": "trained",
+    "version": 3,
+    "error": null,
+    "n_train": 300,
+    "n_eval": 40,
+    "submitted_at": 1794423923
+   },
+   {
+    "name": "lena",
+    "kind": "substitution",
+    "task": "scrambled alphabet",
+    "commitment": "e6ffda3e0aad6264c8cb364ddfa2cafd674a0d9b1f68ba83ee01c6c54e0a2cd0",
+    "status": "trained",
+    "version": 4,
+    "error": null,
+    "n_train": 300,
+    "n_eval": 40,
+    "submitted_at": 1794423983
+   },
+   {
+    "name": "rosa",
+    "kind": "caesar",
+    "task": "Caesar shift",
+    "commitment": "c877c6cbe6a30afd165b58a737ef45a0091c0e231414db207f9151bf47652f5e",
+    "status": "trained",
+    "version": 5,
+    "error": null,
+    "n_train": 300,
+    "n_eval": 40,
+    "submitted_at": 1794424043
+   }
+  ],
+  "queue_length": 0,
+  "current": null,
+  "progress": null,
+  "current_version": 5,
+  "versions": [
+   "base",
+   "demo-caesar",
+   "demo-atbash",
+   "maya",
+   "lena",
+   "rosa"
+  ],
+  "sets": [
+   {
+    "id": "demo-caesar",
+    "label": "demo-caesar",
+    "kind": "caesar",
+    "task": "Caesar shift",
+    "status": "trained"
+   },
+   {
+    "id": "demo-atbash",
+    "label": "demo-atbash",
+    "kind": "substitution",
+    "task": "scrambled alphabet",
+    "status": "trained"
+   },
+   {
+    "id": "maya",
+    "label": "maya",
+    "kind": "caesar",
+    "task": "Caesar shift",
+    "status": "trained"
+   },
+   {
+    "id": "lena",
+    "label": "lena",
+    "kind": "substitution",
+    "task": "scrambled alphabet",
+    "status": "trained"
+   },
+   {
+    "id": "rosa",
+    "label": "rosa",
+    "kind": "caesar",
+    "task": "Caesar shift",
+    "status": "trained"
+   },
+   {
+    "id": "general",
+    "label": "general",
+    "kind": "general",
+    "task": "everyday questions"
+   },
+   {
+    "id": "composition",
+    "label": "demo-caesar+demo-atbash",
+    "kind": "composition",
+    "task": "two ciphers stacked, never trained"
+   }
+  ],
+  "accuracy": {
+   "demo-caesar": [
+    0,
+    0.83,
+    0.25,
+    0.2,
+    0.18,
+    0.15
+   ],
+   "demo-atbash": [
+    null,
+    0,
+    1,
+    0.92,
+    0.8,
+    0.72
+   ],
+   "maya": [
+    null,
+    null,
+    0,
+    0.9,
+    0.6,
+    0.52
+   ],
+   "lena": [
+    null,
+    null,
+    null,
+    0,
+    0.95,
+    0.72
+   ],
+   "rosa": [
+    null,
+    null,
+    null,
+    null,
+    0,
+    0.88
+   ],
+   "general": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "composition": [
+    null,
+    0,
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  "loss": {
+   "demo-caesar": [
+    2.45,
+    0.458,
+    1.85,
+    1.97,
+    2.018,
+    2.09
+   ],
+   "demo-atbash": [
+    null,
+    2.45,
+    0.05,
+    0.242,
+    0.53,
+    0.722
+   ],
+   "maya": [
+    null,
+    null,
+    2.45,
+    0.29,
+    1.01,
+    1.202
+   ],
+   "lena": [
+    null,
+    null,
+    null,
+    2.45,
+    0.17,
+    0.722
+   ],
+   "rosa": [
+    null,
+    null,
+    null,
+    null,
+    2.45,
+    0.338
+   ],
+   "general": [
+    0.05,
+    0.05,
+    0.05,
+    0.05,
+    0.05,
+    0.05
+   ],
+   "composition": [
+    null,
+    2.45,
+    2.45,
+    2.45,
+    2.45,
+    2.45
+   ]
+  },
+  "ledger": [
+   {
+    "version": 0,
+    "event": "base",
+    "contributor": null,
+    "kind": null,
+    "commitment": null,
+    "n_train": 0,
+    "base_model": "Qwen/Qwen2.5-1.5B-Instruct",
+    "weights_root": null,
+    "release_tag": null,
+    "device": "NVIDIA H200",
+    "hyperparams": {
+     "epochs": 2,
+     "lr": 0.0002,
+     "lora_r": 16,
+     "batch_size": 8,
+     "n_train": 300,
+     "n_eval": 40,
+     "acc_n": 40,
+     "lora_targets": "q_proj,k_proj,v_proj,o_proj,gate_proj,up_proj,down_proj"
+    },
+    "train_steps": 0,
+    "train_seconds": 0.0,
+    "accuracy": {
+     "demo-caesar": 0,
+     "general": 1.0
+    },
+    "loss": {
+     "demo-caesar": 2.45,
+     "general": 0.05
+    },
+    "baseline_before": {},
+    "weights_sha256": "ccbfcf1eec1a7bcc57ee1b38bffc7e59df206e0c436173c986307de9d2e95cf3",
+    "prev_weights_sha256": null,
+    "prev_row_sha256": null,
+    "timestamp": 1794423773,
+    "signed_message_b64": "eyJhY2N1cmFjeSI6eyJkZW1vLWNhZXNhciI6MCwiZ2VuZXJhbCI6MS4wfSwiYmFzZV9tb2RlbCI6IlF3ZW4vUXdlbjIuNS0xLjVCLUluc3RydWN0IiwiYmFzZWxpbmVfYmVmb3JlIjp7fSwiY29tbWl0bWVudCI6bnVsbCwiY29udHJpYnV0b3IiOm51bGwsImRldmljZSI6Ik5WSURJQSBIMjAwIiwiZXZlbnQiOiJiYXNlIiwiaHlwZXJwYXJhbXMiOnsiYWNjX24iOjQwLCJiYXRjaF9zaXplIjo4LCJlcG9jaHMiOjIsImxvcmFfciI6MTYsImxvcmFfdGFyZ2V0cyI6InFfcHJvaixrX3Byb2osdl9wcm9qLG9fcHJvaixnYXRlX3Byb2osdXBfcHJvaixkb3duX3Byb2oiLCJsciI6MC4wMDAyLCJuX2V2YWwiOjQwLCJuX3RyYWluIjozMDB9LCJraW5kIjpudWxsLCJsb3NzIjp7ImRlbW8tY2Flc2FyIjoyLjQ1LCJnZW5lcmFsIjowLjA1fSwibl90cmFpbiI6MCwicHJldl9yb3dfc2hhMjU2IjpudWxsLCJwcmV2X3dlaWdodHNfc2hhMjU2IjpudWxsLCJyZWxlYXNlX3RhZyI6bnVsbCwidGltZXN0YW1wIjoxNzk0NDIzNzczLCJ0cmFpbl9zZWNvbmRzIjowLjAsInRyYWluX3N0ZXBzIjowLCJ2ZXJzaW9uIjowLCJ3ZWlnaHRzX3Jvb3QiOm51bGwsIndlaWdodHNfc2hhMjU2IjoiY2NiZmNmMWVlYzFhN2JjYzU3ZWUxYjM4YmZmYzdlNTlkZjIwNmUwYzQzNjE3M2M5ODYzMDdkZTlkMmU5NWNmMyJ9",
+    "signature": "8ad46e8c5e8c852d8640cf0d9b7f5fe9c440f3e3642ab33582e279acf4350936ccd8646ef0a2751e71d250b32e7aef9c4f125d3295101e772381138b35685c07",
+    "row_sha256": "d5bf0cdb19a72f34bc1fe8814a6e4dd402fa9557040617c4e06505f4a710f86b",
+    "attested_key": false
+   },
+   {
+    "version": 1,
+    "event": "train",
+    "contributor": "demo-caesar",
+    "kind": "caesar",
+    "commitment": "b875e0546605493e8c3050cc781bb26a93a7fa09ed77391c9909897cdc443898",
+    "n_train": 300,
+    "base_model": "Qwen/Qwen2.5-1.5B-Instruct",
+    "weights_root": null,
+    "release_tag": null,
+    "device": "NVIDIA H200",
+    "hyperparams": {
+     "epochs": 2,
+     "lr": 0.0002,
+     "lora_r": 16,
+     "batch_size": 8,
+     "n_train": 300,
+     "n_eval": 40,
+     "acc_n": 40,
+     "lora_targets": "q_proj,k_proj,v_proj,o_proj,gate_proj,up_proj,down_proj"
+    },
+    "train_steps": 76,
+    "train_seconds": 17.2,
+    "accuracy": {
+     "demo-caesar": 0.83,
+     "demo-atbash": 0,
+     "general": 1.0,
+     "composition": 0
+    },
+    "loss": {
+     "demo-caesar": 0.458,
+     "demo-atbash": 2.45,
+     "general": 0.05,
+     "composition": 2.45
+    },
+    "baseline_before": {
+     "demo-caesar": {
+      "accuracy": 0,
+      "loss": 2.45
+     }
+    },
+    "weights_sha256": "f719752bbd1d8d237343e22458710a307f50b5e86ac01a63de6e0ee2552743be",
+    "prev_weights_sha256": "ccbfcf1eec1a7bcc57ee1b38bffc7e59df206e0c436173c986307de9d2e95cf3",
+    "prev_row_sha256": "d5bf0cdb19a72f34bc1fe8814a6e4dd402fa9557040617c4e06505f4a710f86b",
+    "timestamp": 1794423833,
+    "signed_message_b64": "eyJhY2N1cmFjeSI6eyJjb21wb3NpdGlvbiI6MCwiZGVtby1hdGJhc2giOjAsImRlbW8tY2Flc2FyIjowLjgzLCJnZW5lcmFsIjoxLjB9LCJiYXNlX21vZGVsIjoiUXdlbi9Rd2VuMi41LTEuNUItSW5zdHJ1Y3QiLCJiYXNlbGluZV9iZWZvcmUiOnsiZGVtby1jYWVzYXIiOnsiYWNjdXJhY3kiOjAsImxvc3MiOjIuNDV9fSwiY29tbWl0bWVudCI6ImI4NzVlMDU0NjYwNTQ5M2U4YzMwNTBjYzc4MWJiMjZhOTNhN2ZhMDllZDc3MzkxYzk5MDk4OTdjZGM0NDM4OTgiLCJjb250cmlidXRvciI6ImRlbW8tY2Flc2FyIiwiZGV2aWNlIjoiTlZJRElBIEgyMDAiLCJldmVudCI6InRyYWluIiwiaHlwZXJwYXJhbXMiOnsiYWNjX24iOjQwLCJiYXRjaF9zaXplIjo4LCJlcG9jaHMiOjIsImxvcmFfciI6MTYsImxvcmFfdGFyZ2V0cyI6InFfcHJvaixrX3Byb2osdl9wcm9qLG9fcHJvaixnYXRlX3Byb2osdXBfcHJvaixkb3duX3Byb2oiLCJsciI6MC4wMDAyLCJuX2V2YWwiOjQwLCJuX3RyYWluIjozMDB9LCJraW5kIjoiY2Flc2FyIiwibG9zcyI6eyJjb21wb3NpdGlvbiI6Mi40NSwiZGVtby1hdGJhc2giOjIuNDUsImRlbW8tY2Flc2FyIjowLjQ1OCwiZ2VuZXJhbCI6MC4wNX0sIm5fdHJhaW4iOjMwMCwicHJldl9yb3dfc2hhMjU2IjoiZDViZjBjZGIxOWE3MmYzNGJjMWZlODgxNGE2ZTRkZDQwMmZhOTU1NzA0MDYxN2M0ZTA2NTA1ZjRhNzEwZjg2YiIsInByZXZfd2VpZ2h0c19zaGEyNTYiOiJjY2JmY2YxZWVjMWE3YmNjNTdlZTFiMzhiZmZjN2U1OWRmMjA2ZTBjNDM2MTczYzk4NjMwN2RlOWQyZTk1Y2YzIiwicmVsZWFzZV90YWciOm51bGwsInRpbWVzdGFtcCI6MTc5NDQyMzgzMywidHJhaW5fc2Vjb25kcyI6MTcuMiwidHJhaW5fc3RlcHMiOjc2LCJ2ZXJzaW9uIjoxLCJ3ZWlnaHRzX3Jvb3QiOm51bGwsIndlaWdodHNfc2hhMjU2IjoiZjcxOTc1MmJiZDFkOGQyMzczNDNlMjI0NTg3MTBhMzA3ZjUwYjVlODZhYzAxYTYzZGU2ZTBlZTI1NTI3NDNiZSJ9",
+    "signature": "849143774a2271c00005c509a5e6a7f00610093c96edc0143ac7aaddf1dfa5834f69a9ad73586e84ff468298e0c2b1a9f02145a588f3e3488b38286e8edee60d",
+    "row_sha256": "c5eeb8931b94f940c1343d0d25c11a7c4b7558764385a88560b78b853499e9cc",
+    "attested_key": false
+   },
+   {
+    "version": 2,
+    "event": "train",
+    "contributor": "demo-atbash",
+    "kind": "substitution",
+    "commitment": "06c9a9e05c92461e7fef4178820949ee1d3ddac46baab11d28b525d909c195bc",
+    "n_train": 300,
+    "base_model": "Qwen/Qwen2.5-1.5B-Instruct",
+    "weights_root": null,
+    "release_tag": null,
+    "device": "NVIDIA H200",
+    "hyperparams": {
+     "epochs": 2,
+     "lr": 0.0002,
+     "lora_r": 16,
+     "batch_size": 8,
+     "n_train": 300,
+     "n_eval": 40,
+     "acc_n": 40,
+     "lora_targets": "q_proj,k_proj,v_proj,o_proj,gate_proj,up_proj,down_proj"
+    },
+    "train_steps": 76,
+    "train_seconds": 18.1,
+    "accuracy": {
+     "demo-caesar": 0.25,
+     "demo-atbash": 1,
+     "maya": 0,
+     "general": 1.0,
+     "composition": 0
+    },
+    "loss": {
+     "demo-caesar": 1.85,
+     "demo-atbash": 0.05,
+     "maya": 2.45,
+     "general": 0.05,
+     "composition": 2.45
+    },
+    "baseline_before": {
+     "demo-atbash": {
+      "accuracy": 0,
+      "loss": 2.45
+     },
+     "composition": {
+      "accuracy": 0,
+      "loss": 2.45
+     }
+    },
+    "weights_sha256": "fb58253507170d6476bfa9e039af134f013bef09844837a56871aa01ba1555c8",
+    "prev_weights_sha256": "f719752bbd1d8d237343e22458710a307f50b5e86ac01a63de6e0ee2552743be",
+    "prev_row_sha256": "c5eeb8931b94f940c1343d0d25c11a7c4b7558764385a88560b78b853499e9cc",
+    "timestamp": 1794423893,
+    "signed_message_b64": "eyJhY2N1cmFjeSI6eyJjb21wb3NpdGlvbiI6MCwiZGVtby1hdGJhc2giOjEsImRlbW8tY2Flc2FyIjowLjI1LCJnZW5lcmFsIjoxLjAsIm1heWEiOjB9LCJiYXNlX21vZGVsIjoiUXdlbi9Rd2VuMi41LTEuNUItSW5zdHJ1Y3QiLCJiYXNlbGluZV9iZWZvcmUiOnsiY29tcG9zaXRpb24iOnsiYWNjdXJhY3kiOjAsImxvc3MiOjIuNDV9LCJkZW1vLWF0YmFzaCI6eyJhY2N1cmFjeSI6MCwibG9zcyI6Mi40NX19LCJjb21taXRtZW50IjoiMDZjOWE5ZTA1YzkyNDYxZTdmZWY0MTc4ODIwOTQ5ZWUxZDNkZGFjNDZiYWFiMTFkMjhiNTI1ZDkwOWMxOTViYyIsImNvbnRyaWJ1dG9yIjoiZGVtby1hdGJhc2giLCJkZXZpY2UiOiJOVklESUEgSDIwMCIsImV2ZW50IjoidHJhaW4iLCJoeXBlcnBhcmFtcyI6eyJhY2NfbiI6NDAsImJhdGNoX3NpemUiOjgsImVwb2NocyI6MiwibG9yYV9yIjoxNiwibG9yYV90YXJnZXRzIjoicV9wcm9qLGtfcHJvaix2X3Byb2osb19wcm9qLGdhdGVfcHJvaix1cF9wcm9qLGRvd25fcHJvaiIsImxyIjowLjAwMDIsIm5fZXZhbCI6NDAsIm5fdHJhaW4iOjMwMH0sImtpbmQiOiJzdWJzdGl0dXRpb24iLCJsb3NzIjp7ImNvbXBvc2l0aW9uIjoyLjQ1LCJkZW1vLWF0YmFzaCI6MC4wNSwiZGVtby1jYWVzYXIiOjEuODUsImdlbmVyYWwiOjAuMDUsIm1heWEiOjIuNDV9LCJuX3RyYWluIjozMDAsInByZXZfcm93X3NoYTI1NiI6ImM1ZWViODkzMWI5NGY5NDBjMTM0M2QwZDI1YzExYTdjNGI3NTU4NzY0Mzg1YTg4NTYwYjc4Yjg1MzQ5OWU5Y2MiLCJwcmV2X3dlaWdodHNfc2hhMjU2IjoiZjcxOTc1MmJiZDFkOGQyMzczNDNlMjI0NTg3MTBhMzA3ZjUwYjVlODZhYzAxYTYzZGU2ZTBlZTI1NTI3NDNiZSIsInJlbGVhc2VfdGFnIjpudWxsLCJ0aW1lc3RhbXAiOjE3OTQ0MjM4OTMsInRyYWluX3NlY29uZHMiOjE4LjEsInRyYWluX3N0ZXBzIjo3NiwidmVyc2lvbiI6Miwid2VpZ2h0c19yb290IjpudWxsLCJ3ZWlnaHRzX3NoYTI1NiI6ImZiNTgyNTM1MDcxNzBkNjQ3NmJmYTllMDM5YWYxMzRmMDEzYmVmMDk4NDQ4MzdhNTY4NzFhYTAxYmExNTU1YzgifQ==",
+    "signature": "f4fe93a41f53ee7f889d29ec9ed884161f03192cdc72dfe6a780744c1f70265d80a99aeaab1e8df3a0e8b8adb7b52e94bad0302444d8c3b849d19698bd24c50a",
+    "row_sha256": "ccf3d842fa3b4bdb8fb4125d57dedd47eef9adf83a2ade7335e25f9855e91eea",
+    "attested_key": false
+   },
+   {
+    "version": 3,
+    "event": "train",
+    "contributor": "maya",
+    "kind": "caesar",
+    "commitment": "44ffbe63022b11bc6b69815fb0514be9d62d88452dc0b463385b20ba62730453",
+    "n_train": 300,
+    "base_model": "Qwen/Qwen2.5-1.5B-Instruct",
+    "weights_root": null,
+    "release_tag": null,
+    "device": "NVIDIA H200",
+    "hyperparams": {
+     "epochs": 2,
+     "lr": 0.0002,
+     "lora_r": 16,
+     "batch_size": 8,
+     "n_train": 300,
+     "n_eval": 40,
+     "acc_n": 40,
+     "lora_targets": "q_proj,k_proj,v_proj,o_proj,gate_proj,up_proj,down_proj"
+    },
+    "train_steps": 76,
+    "train_seconds": 16.4,
+    "accuracy": {
+     "demo-caesar": 0.2,
+     "demo-atbash": 0.92,
+     "maya": 0.9,
+     "lena": 0,
+     "general": 1.0,
+     "composition": 0
+    },
+    "loss": {
+     "demo-caesar": 1.97,
+     "demo-atbash": 0.242,
+     "maya": 0.29,
+     "lena": 2.45,
+     "general": 0.05,
+     "composition": 2.45
+    },
+    "baseline_before": {
+     "maya": {
+      "accuracy": 0,
+      "loss": 2.45
+     }
+    },
+    "weights_sha256": "750fab8da2717f2a73d93432581cd12b797b8ede6e26d5016a15b9c36ad7e46b",
+    "prev_weights_sha256": "fb58253507170d6476bfa9e039af134f013bef09844837a56871aa01ba1555c8",
+    "prev_row_sha256": "ccf3d842fa3b4bdb8fb4125d57dedd47eef9adf83a2ade7335e25f9855e91eea",
+    "timestamp": 1794423953,
+    "signed_message_b64": "eyJhY2N1cmFjeSI6eyJjb21wb3NpdGlvbiI6MCwiZGVtby1hdGJhc2giOjAuOTIsImRlbW8tY2Flc2FyIjowLjIsImdlbmVyYWwiOjEuMCwibGVuYSI6MCwibWF5YSI6MC45fSwiYmFzZV9tb2RlbCI6IlF3ZW4vUXdlbjIuNS0xLjVCLUluc3RydWN0IiwiYmFzZWxpbmVfYmVmb3JlIjp7Im1heWEiOnsiYWNjdXJhY3kiOjAsImxvc3MiOjIuNDV9fSwiY29tbWl0bWVudCI6IjQ0ZmZiZTYzMDIyYjExYmM2YjY5ODE1ZmIwNTE0YmU5ZDYyZDg4NDUyZGMwYjQ2MzM4NWIyMGJhNjI3MzA0NTMiLCJjb250cmlidXRvciI6Im1heWEiLCJkZXZpY2UiOiJOVklESUEgSDIwMCIsImV2ZW50IjoidHJhaW4iLCJoeXBlcnBhcmFtcyI6eyJhY2NfbiI6NDAsImJhdGNoX3NpemUiOjgsImVwb2NocyI6MiwibG9yYV9yIjoxNiwibG9yYV90YXJnZXRzIjoicV9wcm9qLGtfcHJvaix2X3Byb2osb19wcm9qLGdhdGVfcHJvaix1cF9wcm9qLGRvd25fcHJvaiIsImxyIjowLjAwMDIsIm5fZXZhbCI6NDAsIm5fdHJhaW4iOjMwMH0sImtpbmQiOiJjYWVzYXIiLCJsb3NzIjp7ImNvbXBvc2l0aW9uIjoyLjQ1LCJkZW1vLWF0YmFzaCI6MC4yNDIsImRlbW8tY2Flc2FyIjoxLjk3LCJnZW5lcmFsIjowLjA1LCJsZW5hIjoyLjQ1LCJtYXlhIjowLjI5fSwibl90cmFpbiI6MzAwLCJwcmV2X3Jvd19zaGEyNTYiOiJjY2YzZDg0MmZhM2I0YmRiOGZiNDEyNWQ1N2RlZGQ0N2VlZjlhZGY4M2EyYWRlNzMzNWUyNWY5ODU1ZTkxZWVhIiwicHJldl93ZWlnaHRzX3NoYTI1NiI6ImZiNTgyNTM1MDcxNzBkNjQ3NmJmYTllMDM5YWYxMzRmMDEzYmVmMDk4NDQ4MzdhNTY4NzFhYTAxYmExNTU1YzgiLCJyZWxlYXNlX3RhZyI6bnVsbCwidGltZXN0YW1wIjoxNzk0NDIzOTUzLCJ0cmFpbl9zZWNvbmRzIjoxNi40LCJ0cmFpbl9zdGVwcyI6NzYsInZlcnNpb24iOjMsIndlaWdodHNfcm9vdCI6bnVsbCwid2VpZ2h0c19zaGEyNTYiOiI3NTBmYWI4ZGEyNzE3ZjJhNzNkOTM0MzI1ODFjZDEyYjc5N2I4ZWRlNmUyNmQ1MDE2YTE1YjljMzZhZDdlNDZiIn0=",
+    "signature": "7c46fe50e94875fe114681efe20df5c6e90a38d992fec7370668a86efe7e2216ab0e2ecd9f8612c8b046f3afdfbaa316270925aa972d265860092a2c12997108",
+    "row_sha256": "0daf580f8d369905df12d28593e9b35c1e921cfc1f91c0f79204fd51a42166b3",
+    "attested_key": false
+   },
+   {
+    "version": 4,
+    "event": "train",
+    "contributor": "lena",
+    "kind": "substitution",
+    "commitment": "e6ffda3e0aad6264c8cb364ddfa2cafd674a0d9b1f68ba83ee01c6c54e0a2cd0",
+    "n_train": 300,
+    "base_model": "Qwen/Qwen2.5-1.5B-Instruct",
+    "weights_root": null,
+    "release_tag": null,
+    "device": "NVIDIA H200",
+    "hyperparams": {
+     "epochs": 2,
+     "lr": 0.0002,
+     "lora_r": 16,
+     "batch_size": 8,
+     "n_train": 300,
+     "n_eval": 40,
+     "acc_n": 40,
+     "lora_targets": "q_proj,k_proj,v_proj,o_proj,gate_proj,up_proj,down_proj"
+    },
+    "train_steps": 76,
+    "train_seconds": 17.0,
+    "accuracy": {
+     "demo-caesar": 0.18,
+     "demo-atbash": 0.8,
+     "maya": 0.6,
+     "lena": 0.95,
+     "rosa": 0,
+     "general": 1.0,
+     "composition": 0
+    },
+    "loss": {
+     "demo-caesar": 2.018,
+     "demo-atbash": 0.53,
+     "maya": 1.01,
+     "lena": 0.17,
+     "rosa": 2.45,
+     "general": 0.05,
+     "composition": 2.45
+    },
+    "baseline_before": {
+     "lena": {
+      "accuracy": 0,
+      "loss": 2.45
+     }
+    },
+    "weights_sha256": "9371f12276e73c41a9f8c49ce16fa3ec2a78bf8605b2482f76010cd9474e79bc",
+    "prev_weights_sha256": "750fab8da2717f2a73d93432581cd12b797b8ede6e26d5016a15b9c36ad7e46b",
+    "prev_row_sha256": "0daf580f8d369905df12d28593e9b35c1e921cfc1f91c0f79204fd51a42166b3",
+    "timestamp": 1794424013,
+    "signed_message_b64": "eyJhY2N1cmFjeSI6eyJjb21wb3NpdGlvbiI6MCwiZGVtby1hdGJhc2giOjAuOCwiZGVtby1jYWVzYXIiOjAuMTgsImdlbmVyYWwiOjEuMCwibGVuYSI6MC45NSwibWF5YSI6MC42LCJyb3NhIjowfSwiYmFzZV9tb2RlbCI6IlF3ZW4vUXdlbjIuNS0xLjVCLUluc3RydWN0IiwiYmFzZWxpbmVfYmVmb3JlIjp7ImxlbmEiOnsiYWNjdXJhY3kiOjAsImxvc3MiOjIuNDV9fSwiY29tbWl0bWVudCI6ImU2ZmZkYTNlMGFhZDYyNjRjOGNiMzY0ZGRmYTJjYWZkNjc0YTBkOWIxZjY4YmE4M2VlMDFjNmM1NGUwYTJjZDAiLCJjb250cmlidXRvciI6ImxlbmEiLCJkZXZpY2UiOiJOVklESUEgSDIwMCIsImV2ZW50IjoidHJhaW4iLCJoeXBlcnBhcmFtcyI6eyJhY2NfbiI6NDAsImJhdGNoX3NpemUiOjgsImVwb2NocyI6MiwibG9yYV9yIjoxNiwibG9yYV90YXJnZXRzIjoicV9wcm9qLGtfcHJvaix2X3Byb2osb19wcm9qLGdhdGVfcHJvaix1cF9wcm9qLGRvd25fcHJvaiIsImxyIjowLjAwMDIsIm5fZXZhbCI6NDAsIm5fdHJhaW4iOjMwMH0sImtpbmQiOiJzdWJzdGl0dXRpb24iLCJsb3NzIjp7ImNvbXBvc2l0aW9uIjoyLjQ1LCJkZW1vLWF0YmFzaCI6MC41MywiZGVtby1jYWVzYXIiOjIuMDE4LCJnZW5lcmFsIjowLjA1LCJsZW5hIjowLjE3LCJtYXlhIjoxLjAxLCJyb3NhIjoyLjQ1fSwibl90cmFpbiI6MzAwLCJwcmV2X3Jvd19zaGEyNTYiOiIwZGFmNTgwZjhkMzY5OTA1ZGYxMmQyODU5M2U5YjM1YzFlOTIxY2ZjMWY5MWMwZjc5MjA0ZmQ1MWE0MjE2NmIzIiwicHJldl93ZWlnaHRzX3NoYTI1NiI6Ijc1MGZhYjhkYTI3MTdmMmE3M2Q5MzQzMjU4MWNkMTJiNzk3YjhlZGU2ZTI2ZDUwMTZhMTViOWMzNmFkN2U0NmIiLCJyZWxlYXNlX3RhZyI6bnVsbCwidGltZXN0YW1wIjoxNzk0NDI0MDEzLCJ0cmFpbl9zZWNvbmRzIjoxNy4wLCJ0cmFpbl9zdGVwcyI6NzYsInZlcnNpb24iOjQsIndlaWdodHNfcm9vdCI6bnVsbCwid2VpZ2h0c19zaGEyNTYiOiI5MzcxZjEyMjc2ZTczYzQxYTlmOGM0OWNlMTZmYTNlYzJhNzhiZjg2MDViMjQ4MmY3NjAxMGNkOTQ3NGU3OWJjIn0=",
+    "signature": "8b6f2e661aa82c6e3c9f8b216bc2fdfe598dbf189b884ec33b5f2050dcad017d8765df4ba529d6671c24fb97fee4f66c71ca7b560f075dafcc0f94e6ea7d260f",
+    "row_sha256": "41be0caa95847ea20c7c8009b49cec10156435463af135c15d67334f5b1b75f5",
+    "attested_key": false
+   },
+   {
+    "version": 5,
+    "event": "train",
+    "contributor": "rosa",
+    "kind": "caesar",
+    "commitment": "c877c6cbe6a30afd165b58a737ef45a0091c0e231414db207f9151bf47652f5e",
+    "n_train": 300,
+    "base_model": "Qwen/Qwen2.5-1.5B-Instruct",
+    "weights_root": null,
+    "release_tag": null,
+    "device": "NVIDIA H200",
+    "hyperparams": {
+     "epochs": 2,
+     "lr": 0.0002,
+     "lora_r": 16,
+     "batch_size": 8,
+     "n_train": 300,
+     "n_eval": 40,
+     "acc_n": 40,
+     "lora_targets": "q_proj,k_proj,v_proj,o_proj,gate_proj,up_proj,down_proj"
+    },
+    "train_steps": 76,
+    "train_seconds": 16.8,
+    "accuracy": {
+     "demo-caesar": 0.15,
+     "demo-atbash": 0.72,
+     "maya": 0.52,
+     "lena": 0.72,
+     "rosa": 0.88,
+     "general": 1.0,
+     "composition": 0
+    },
+    "loss": {
+     "demo-caesar": 2.09,
+     "demo-atbash": 0.722,
+     "maya": 1.202,
+     "lena": 0.722,
+     "rosa": 0.338,
+     "general": 0.05,
+     "composition": 2.45
+    },
+    "baseline_before": {
+     "rosa": {
+      "accuracy": 0,
+      "loss": 2.45
+     }
+    },
+    "weights_sha256": "072780053c562b6abe937cd3ac14dc45f7069d3794cc575ee283c490ccc52d0c",
+    "prev_weights_sha256": "9371f12276e73c41a9f8c49ce16fa3ec2a78bf8605b2482f76010cd9474e79bc",
+    "prev_row_sha256": "41be0caa95847ea20c7c8009b49cec10156435463af135c15d67334f5b1b75f5",
+    "timestamp": 1794424073,
+    "signed_message_b64": "eyJhY2N1cmFjeSI6eyJjb21wb3NpdGlvbiI6MCwiZGVtby1hdGJhc2giOjAuNzIsImRlbW8tY2Flc2FyIjowLjE1LCJnZW5lcmFsIjoxLjAsImxlbmEiOjAuNzIsIm1heWEiOjAuNTIsInJvc2EiOjAuODh9LCJiYXNlX21vZGVsIjoiUXdlbi9Rd2VuMi41LTEuNUItSW5zdHJ1Y3QiLCJiYXNlbGluZV9iZWZvcmUiOnsicm9zYSI6eyJhY2N1cmFjeSI6MCwibG9zcyI6Mi40NX19LCJjb21taXRtZW50IjoiYzg3N2M2Y2JlNmEzMGFmZDE2NWI1OGE3MzdlZjQ1YTAwOTFjMGUyMzE0MTRkYjIwN2Y5MTUxYmY0NzY1MmY1ZSIsImNvbnRyaWJ1dG9yIjoicm9zYSIsImRldmljZSI6Ik5WSURJQSBIMjAwIiwiZXZlbnQiOiJ0cmFpbiIsImh5cGVycGFyYW1zIjp7ImFjY19uIjo0MCwiYmF0Y2hfc2l6ZSI6OCwiZXBvY2hzIjoyLCJsb3JhX3IiOjE2LCJsb3JhX3RhcmdldHMiOiJxX3Byb2osa19wcm9qLHZfcHJvaixvX3Byb2osZ2F0ZV9wcm9qLHVwX3Byb2osZG93bl9wcm9qIiwibHIiOjAuMDAwMiwibl9ldmFsIjo0MCwibl90cmFpbiI6MzAwfSwia2luZCI6ImNhZXNhciIsImxvc3MiOnsiY29tcG9zaXRpb24iOjIuNDUsImRlbW8tYXRiYXNoIjowLjcyMiwiZGVtby1jYWVzYXIiOjIuMDksImdlbmVyYWwiOjAuMDUsImxlbmEiOjAuNzIyLCJtYXlhIjoxLjIwMiwicm9zYSI6MC4zMzh9LCJuX3RyYWluIjozMDAsInByZXZfcm93X3NoYTI1NiI6IjQxYmUwY2FhOTU4NDdlYTIwYzdjODAwOWI0OWNlYzEwMTU2NDM1NDYzYWYxMzVjMTVkNjczMzRmNWIxYjc1ZjUiLCJwcmV2X3dlaWdodHNfc2hhMjU2IjoiOTM3MWYxMjI3NmU3M2M0MWE5ZjhjNDljZTE2ZmEzZWMyYTc4YmY4NjA1YjI0ODJmNzYwMTBjZDk0NzRlNzliYyIsInJlbGVhc2VfdGFnIjpudWxsLCJ0aW1lc3RhbXAiOjE3OTQ0MjQwNzMsInRyYWluX3NlY29uZHMiOjE2LjgsInRyYWluX3N0ZXBzIjo3NiwidmVyc2lvbiI6NSwid2VpZ2h0c19yb290IjpudWxsLCJ3ZWlnaHRzX3NoYTI1NiI6IjA3Mjc4MDA1M2M1NjJiNmFiZTkzN2NkM2FjMTRkYzQ1ZjcwNjlkMzc5NGNjNTc1ZWUyODNjNDkwY2NjNTJkMGMifQ==",
+    "signature": "5193d8b91ec9d29c6f493844bacbe069b0b6fa45bea4285715e6ee4c3589153e5b416d6a6bee0d15f875cb149224422353a32f2d31efbc6b2583b5623b37760e",
+    "row_sha256": "b102bf89b57345a72a2e0aaafc18b49823a4699cbf71f204f03d17413fd4b417",
+    "attested_key": false
+   }
+  ]
+ },
+ "public_key": "36c384ed740b2c1d649aadbe4df259e020a229688fb73ad4385706ad91684a48",
+ "attested_key": false,
+ "environment": {
+  "mode": "sample",
+  "gpu": "NVIDIA H200",
+  "release_tag": null,
+  "model_path": "Qwen/Qwen2.5-1.5B-Instruct",
+  "model_name": "Qwen2.5-1.5B-Instruct",
+  "weights_root": null,
+  "config_repo": "Andrew-Forman/sealed-weights",
+  "enclave_host": null,
+  "repo": null
+ },
+ "verification": {
+  "checked_at": "2026-11-11T19:10:53Z",
+  "tool": "layout sample (made up)",
+  "sdk": "-",
+  "cli": "-",
+  "python": "-",
+  "platform": "sample",
+  "ok": true,
+  "sample": true,
+  "output": "LAYOUT SAMPLE: made-up output for judging the page layout. This is not a real verification.\nSealed Weights saved-run verification, 2026-11-11T19:10:53Z\nrun: layout-sample  repo: Andrew-Forman/sealed-weights  release: v0.2.0  (sample)\n  PASS        The enclave ran the published release: (sample) measurement matches the release\n  PASS        The base model is the pinned one: (sample) v0 weights root ded5829bab092330\u2026\n  PASS        The signing key was generated inside the enclave: (sample) attested key 'scorecard'\n  PASS        Every version is signed and the chain is unbroken: 6 of 6 versions, chain unbroken\n\nRUN VERIFIED (layout sample: made-up)\n",
+  "checks": [
+   {
+    "id": "release",
+    "title": "The enclave ran the published release",
+    "status": "pass",
+    "detail": "(sample)",
+    "release_tag": "v0.2.0",
+    "repo": "Andrew-Forman/sealed-weights",
+    "release_url": "https://github.com/Andrew-Forman/sealed-weights/releases",
+    "sigstore_url": "https://search.sigstore.dev/"
+   },
+   {
+    "id": "weights",
+    "title": "The base model is the pinned one",
+    "status": "pass",
+    "detail": "(sample)",
+    "weights_root": "ded5829bab092330a1443e87efbb55cb425bbb976540b6e0d546dc347711d3db"
+   },
+   {
+    "id": "signing_key",
+    "title": "The signing key was generated inside the enclave",
+    "status": "pass",
+    "detail": "(sample)",
+    "key_id": "scorecard",
+    "source": "cli_at_snapshot"
+   },
+   {
+    "id": "record",
+    "title": "Every version is signed and the chain is unbroken",
+    "status": "pass",
+    "detail": "(sample)",
+    "versions": 6
+   }
+  ]
+ }
+}

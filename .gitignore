@@ -1,0 +1,31 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# run records and builds (a published run is copied into site/ by build_site.py)
+runs/*
+!runs/.gitkeep
+site/
+
+# secrets: never commit these
+.env
+.env.*
+*.pem
+*.key
+*token*.txt
+secrets*.json
+
+# editors and OS
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# screenshots and review material
+*.png
+*.jpg
+*.jpeg
+*.mp4
+*.mov
