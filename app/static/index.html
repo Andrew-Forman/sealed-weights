@@ -1165,7 +1165,7 @@ function renderReplay() {
   }
   const scored = Math.min(hp.acc_n || hp.n_eval || 0, hp.n_eval || Infinity);
   const zeroBefore = trains.every((r) => !acc(r.contributor, r.version - 1));
-  $("hmcap").textContent = `Each box is one test. The model is given ${scored} encrypted messages it has never seen, written in that party's cipher, and the number is the share it turned back into the right words. 1.00 means all ${scored}. A dash means that party had not contributed yet. `
+  $("hmcap").textContent = `Each box is one test. The model is given ${scored} new encrypted messages, built from a small set of common words, written in that party's cipher, and the number is the share it turned back into the right words. 1.00 means all ${scored}. A dash means that party had not contributed yet. `
     + (zeroBefore ? "The 0.00 just before a party's own version is the score before the model trained on its cipher." : "The number just before a party's own version is the score before the model trained on its cipher.")
     + " Tests run inside the enclave.";
 
