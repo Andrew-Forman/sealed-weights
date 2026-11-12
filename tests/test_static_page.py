@@ -65,6 +65,15 @@ try:
     assert f'href="{blob}fav32-x4.png"' in h and 'href="/favicon' not in h
     assert '<p class="credit">Seal photo: image by someone on <a href="https://www.freepik.com/free-photo/x"' in h
     assert f'src="{blob}seal-x2.png"' in p4 and "on <a href" in p4 and f'href="{blob}fav-x3.ico"' in p4
+    # paid license: no credit configured -> no credit line and no placeholder left, photo still used
+    build_site.PHOTO_CREDIT.update(author="", url="")
+    o3 = Path(tempfile.mkdtemp()) / "site"
+    sys.argv = ["build_site.py", "tests/fixtures/layout-sample.json", "--out", str(o3)]
+    with contextlib.redirect_stdout(io.StringIO()):
+        build_site.main()
+    h3, p43 = (o3 / "index.html").read_text(), (o3 / "404.html").read_text()
+    assert f'href="{blob}fav-x3.ico"' in h3 and f'src="{blob}seal-x2.png"' in p43
+    assert 'class="credit"' not in h3 and "__PHOTO_CREDIT__" not in p43 and 'class="credit"' not in p43.split("</style>")[1]
     build_site.ASSETS = saved[2] + ["no-such-file.png"]
     sys.argv = ["build_site.py", "tests/fixtures/layout-sample.json", "--out", str(Path(tempfile.mkdtemp()) / "site")]
     with contextlib.redirect_stdout(io.StringIO()):

@@ -20,7 +20,6 @@ Files adapted from Tinfoil
 
 Seal photo (sealedweights.com only; not in this repository)
   The site's link-preview card, tab icons and page-not-found page use a photo of a seal on a pebble
-  beach (Helgoland), from Freepik, under Freepik's free license, which requires attribution.
-  The site credits it in its footer and on the page-not-found page. The photo and the images
-  made from it are not included in this repository and are not covered by the Apache License;
-  they are hosted separately and used under Freepik's terms.
+  beach (Helgoland), licensed from Freepik under a paid license. The photo and the images made from
+  it are not included in this repository and are not covered by the Apache License; they are hosted
+  separately and used under Freepik's terms.

@@ -25,11 +25,12 @@ SITE_URL = "https://sealedweights.com"   # for link previews (og:image needs an 
 # Files copied from app/static/ into every built site; a missing one fails the build.
 ASSETS = ["og.png", "favicon.ico", "favicon-32.png", "apple-touch-icon.png", "404.html"]
 
-# The seal photo (Freepik, free license with attribution) is used for the link-preview card, the
-# tab icons and the 404 page. The image files are NOT in this repo: they live in a public Vercel
-# Blob store and the page links to them (the exact URL of each uploaded file). Until every URL and
-# the credit are set, builds use the lock icons and the plain card from app/static and leave the
-# photo out, and --publish refuses.
+# The seal photo (Freepik, paid license) is the project's mark: link-preview card, tab icons and
+# the 404 page. The license doesn't allow redistributing the image files, so they are NOT in this
+# repo: they live in a public Vercel Blob store and the page links to them (the exact URL of each
+# uploaded file). Until every URL is set, builds use the lock icons and the plain card from
+# app/static and leave the photo out, and --publish refuses. A paid license needs no credit;
+# PHOTO_CREDIT adds an optional credit line if a url is given.
 BRAND_URLS = {
     "card": "https://z3mfzzdsxbrmzdyj.public.blob.vercel-storage.com/sealed-weights-card.png",                  # sealed-weights-card.png    1200x630 link-preview card
     "seal": "https://z3mfzzdsxbrmzdyj.public.blob.vercel-storage.com/seal-320.png",                  # seal-320.png               circle for the 404 page
@@ -37,7 +38,7 @@ BRAND_URLS = {
     "favicon-32.png": "https://z3mfzzdsxbrmzdyj.public.blob.vercel-storage.com/seal-favicon-32.png",        # seal-favicon-32.png
     "apple-touch-icon.png": "https://z3mfzzdsxbrmzdyj.public.blob.vercel-storage.com/seal-apple-touch-icon.png",  # seal-apple-touch-icon.png  180 px
 }
-PHOTO_CREDIT = {"author": "", "url": ""}   # from the photo's Freepik page
+PHOTO_CREDIT = {"author": "", "url": ""}   # optional; empty = no credit line
 BLOB_HOSTS = "https://*.public.blob.vercel-storage.com"
 BLOB_URL = re.compile(r"https://[a-z0-9]+\.public\.blob\.vercel-storage\.com/[A-Za-z0-9._-]+")
 
@@ -51,7 +52,7 @@ def photo_credit_html():
 
 
 def brand_ready():
-    return all(BLOB_URL.fullmatch(v or "") for v in BRAND_URLS.values()) and bool(PHOTO_CREDIT.get("url"))
+    return all(BLOB_URL.fullmatch(v or "") for v in BRAND_URLS.values())
 
 
 def apply_brand(html):
@@ -59,8 +60,11 @@ def apply_brand(html):
     for name in ("favicon.ico", "favicon-32.png", "apple-touch-icon.png"):
         html = html.replace(f'href="/{name}"', f'href="{BRAND_URLS[name]}"')
     html = html.replace(f"{SITE_URL}/og.png", BRAND_URLS["card"]).replace("__SEAL_URL__", BRAND_URLS["seal"])
-    html = html.replace("<!--PHOTO-CREDIT-->", f'<p class="credit">{photo_credit_html()}</p>')
-    return html.replace("__PHOTO_CREDIT__", photo_credit_html())
+    credit = photo_credit_html()
+    html = html.replace("<!--PHOTO-CREDIT-->", f'<p class="credit">{credit}</p>' if credit else "")
+    if credit:
+        return html.replace("__PHOTO_CREDIT__", credit)
+    return re.sub(r'\s*<p class="credit">__PHOTO_CREDIT__</p>', "", html)
 
 # Security headers for Vercel. The page uses inline styles and scripts and Google Fonts; the
 # video and poster are served from the site itself; Vercel Web Analytics and Speed Insights load
@@ -213,7 +217,7 @@ def main():
         if not re.fullmatch(r"[A-Za-z0-9_]{1,15}", X_HANDLE or ""):
             problems.append("no X handle configured for the contact line (X_HANDLE in build_site.py)")
         if x.publish and not brand_ready():
-            problems.append("the seal photo isn't configured (BRAND_URLS and PHOTO_CREDIT in build_site.py)")
+            problems.append("the seal photo isn't configured (BRAND_URLS in build_site.py)")
         if x.publish and not x.video:
             problems.append("no --video: the published Overview needs the demo video")
         if problems:
