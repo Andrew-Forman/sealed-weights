@@ -125,6 +125,12 @@ verified weight mount and exits if that mount is missing; it never downloads a m
    folder. `--publish` refuses any run that isn't from an attested Tinfoil enclave or whose
    saved checks didn't all pass. Stop the container when you're done; it bills while running.
 
+**The public site** is a Vercel project connected to this repo. Vercel runs
+`python3 build_site.py published/take2-C.json --draft --out site` (install command
+`python3 -m pip install cryptography`, output directory `site`), so the site is built from
+this repo and the recorded run in `published/`. The root `vercel.json` sets the security
+headers and, until the public build, `noindex`.
+
 To preview the page from the layout sample, with no enclave and no model:
 
 ```bash

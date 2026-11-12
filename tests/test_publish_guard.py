@@ -68,3 +68,11 @@ for name, brk in breaks.items():
     print(f"ok   refused: {name}")
 print("(the saved verification comes from client.py verify --run --save, which re-checks the "
       "hardware signature and Sigstore release with Tinfoil's SDK)")
+
+# 4. the root vercel.json (what a Git-connected Vercel project reads) matches build_site's headers
+root = json.load(open("vercel.json"))
+assert root in (build_site.vercel_config(indexable=False), build_site.vercel_config(indexable=True)), \
+    "vercel.json is out of step with build_site.vercel_config(); regenerate it"
+noindex = any(h["key"] == "X-Robots-Tag" for h in root["headers"][0]["headers"])
+print(f"ok   root vercel.json matches build_site ({'noindex: draft' if noindex else 'indexable: public'})")
+
