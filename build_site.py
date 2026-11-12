@@ -22,6 +22,29 @@ ROOT = Path(__file__).parent
 MARK = "<!--SEALED_STATIC-->"
 X_HANDLE = "andrew_forman"   # the X handle in the contact line on every tab; "" leaves the line out
 SITE_URL = "https://sealedweights.com"   # for link previews (og:image needs an absolute URL)
+# Files copied from app/static/ into every built site; a missing one fails the build.
+ASSETS = ["og.png", "favicon.ico", "favicon-32.png", "apple-touch-icon.png", "404.html"]
+
+# The seal photo (Freepik, free license with attribution) is used on the link-preview card and the
+# 404 page. Its license doesn't allow redistributing it, so the files are NOT in this repo: they
+# live in a public Vercel Blob store and the page links to them. Empty = builds leave the photo out
+# (and --publish refuses).
+BRAND_BASE = ""      # e.g. "https://<store-id>.public.blob.vercel-storage.com"
+CARD_FILE, SEAL_FILE = "sealed-weights-card.png", "seal-320.png"
+PHOTO_CREDIT = {"author": "", "url": ""}   # from the photo's Freepik page
+BLOB_HOSTS = "https://*.public.blob.vercel-storage.com"
+
+
+def photo_credit_html():
+    a, u = PHOTO_CREDIT.get("author"), PHOTO_CREDIT.get("url")
+    if not u:
+        return ""
+    who = f"by {a} " if a else ""
+    return f'Seal photo: image {who}on <a href="{u}" target="_blank" rel="noopener">Freepik</a>'
+
+
+def brand_ready():
+    return bool(re.fullmatch(r"https://[a-z0-9]+\.public\.blob\.vercel-storage\.com", BRAND_BASE or "")) and bool(PHOTO_CREDIT.get("url"))
 
 # Security headers for Vercel. The page uses inline styles and scripts and Google Fonts; the
 # video and poster are served from the site itself; Vercel Web Analytics and Speed Insights load
@@ -31,7 +54,7 @@ CSP = "; ".join([
     "script-src 'self' 'unsafe-inline' https://va.vercel-scripts.com",
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "font-src https://fonts.gstatic.com",
-    "img-src 'self' data:",
+    f"img-src 'self' data: {BLOB_HOSTS}",
     "media-src 'self'",
     "connect-src 'self' https://vitals.vercel-insights.com",
     "frame-ancestors 'none'",
@@ -85,7 +108,10 @@ def vercel_config(indexable):
     ]
     if not indexable:   # previews and drafts stay out of search engines
         headers.append({"key": "X-Robots-Tag", "value": "noindex, nofollow"})
-    return {"headers": [{"source": "/(.*)", "headers": headers}]}
+    rules = [{"source": "/(.*)", "headers": headers}]
+    # the page-not-found page is never indexed, on any build
+    rules.append({"source": "/404.html", "headers": [{"key": "X-Robots-Tag", "value": "noindex, nofollow"}]})
+    return {"headers": rules}
 
 
 def publish_problems(run):
@@ -170,6 +196,8 @@ def main():
         problems = publish_problems(run)
         if not re.fullmatch(r"[A-Za-z0-9_]{1,15}", X_HANDLE or ""):
             problems.append("no X handle configured for the contact line (X_HANDLE in build_site.py)")
+        if x.publish and not brand_ready():
+            problems.append("the seal photo isn't configured (BRAND_BASE and PHOTO_CREDIT in build_site.py)")
         if x.publish and not x.video:
             problems.append("no --video: the published Overview needs the demo video")
         if problems:
@@ -194,13 +222,25 @@ def main():
             shutil.copy(opt, out / dest)
             cfg[key] = dest
 
-    og = ROOT / "app" / "static" / "og.png"
-    if og.exists():   # link-preview image
-        shutil.copy(og, out / "og.png")
+    for name in ASSETS:   # fallback link card, tab icons, the 404 page
+        src = ROOT / "app" / "static" / name
+        if not src.is_file():
+            sys.exit(f"missing site asset app/static/{name}; not building")
+        shutil.copy(src, out / name)
+    page404 = (out / "404.html").read_text()
+    if brand_ready():   # the seal and its credit, from the Blob store
+        page404 = page404.replace("__SEAL_URL__", f"{BRAND_BASE}/{SEAL_FILE}").replace("__PHOTO_CREDIT__", photo_credit_html())
+    else:
+        page404 = re.sub(r'\s*<img src="__SEAL_URL__"[^>]*>', "", page404)
+        page404 = re.sub(r'\s*<p class="credit">__PHOTO_CREDIT__</p>', "", page404)
+    (out / "404.html").write_text(page404)
     (out / "vercel.json").write_text(json.dumps(vercel_config(indexable=x.publish), indent=1))
 
     html = static_html((ROOT / "app" / "static" / "index.html").read_text(), run,
                        no_video=x.draft and not x.video)
+    if brand_ready():   # link card from the Blob store, photo credit in the footer
+        html = html.replace(f"{SITE_URL}/og.png", f"{BRAND_BASE}/{CARD_FILE}")
+        html = html.replace("<!--PHOTO-CREDIT-->", f'<p class="credit">{photo_credit_html()}</p>')
     assert MARK in html, "index.html is missing the static-config marker"
     tag = "<script>window.SEALED_STATIC = " + json.dumps(cfg).replace("<", "\\u003c") + ";</script>"
     if not x.publish:   # keep previews and drafts out of search engines

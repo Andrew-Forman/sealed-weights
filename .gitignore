@@ -26,6 +26,8 @@ secrets*.json
 # screenshots and review material
 *.png
 !app/static/og.png
+!app/static/favicon-32.png
+!app/static/apple-touch-icon.png
 *.jpg
 *.jpeg
 *.mp4

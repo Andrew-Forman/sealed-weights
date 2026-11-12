@@ -5,7 +5,7 @@
    "headers": [
     {
      "key": "Content-Security-Policy",
-     "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://va.vercel-scripts.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; media-src 'self'; connect-src 'self' https://vitals.vercel-insights.com; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; object-src 'none'"
+     "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://va.vercel-scripts.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://*.public.blob.vercel-storage.com; media-src 'self'; connect-src 'self' https://vitals.vercel-insights.com; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; object-src 'none'"
     },
     {
      "key": "X-Content-Type-Options",
@@ -23,6 +23,15 @@
      "key": "Permissions-Policy",
      "value": "camera=(), microphone=(), geolocation=(), interest-cohort=()"
     },
+    {
+     "key": "X-Robots-Tag",
+     "value": "noindex, nofollow"
+    }
+   ]
+  },
+  {
+   "source": "/404.html",
+   "headers": [
     {
      "key": "X-Robots-Tag",
      "value": "noindex, nofollow"
