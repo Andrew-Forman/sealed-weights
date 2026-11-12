@@ -31,11 +31,11 @@ ASSETS = ["og.png", "favicon.ico", "favicon-32.png", "apple-touch-icon.png", "40
 # the credit are set, builds use the lock icons and the plain card from app/static and leave the
 # photo out, and --publish refuses.
 BRAND_URLS = {
-    "card": "",                  # sealed-weights-card.png    1200x630 link-preview card
-    "seal": "",                  # seal-320.png               circle for the 404 page
-    "favicon.ico": "",           # seal-favicon.ico           16/32/48 px
-    "favicon-32.png": "",        # seal-favicon-32.png
-    "apple-touch-icon.png": "",  # seal-apple-touch-icon.png  180 px
+    "card": "https://z3mfzzdsxbrmzdyj.public.blob.vercel-storage.com/sealed-weights-card.png",                  # sealed-weights-card.png    1200x630 link-preview card
+    "seal": "https://z3mfzzdsxbrmzdyj.public.blob.vercel-storage.com/seal-320.png",                  # seal-320.png               circle for the 404 page
+    "favicon.ico": "https://z3mfzzdsxbrmzdyj.public.blob.vercel-storage.com/seal-favicon.ico",           # seal-favicon.ico           16/32/48 px
+    "favicon-32.png": "https://z3mfzzdsxbrmzdyj.public.blob.vercel-storage.com/seal-favicon-32.png",        # seal-favicon-32.png
+    "apple-touch-icon.png": "https://z3mfzzdsxbrmzdyj.public.blob.vercel-storage.com/seal-apple-touch-icon.png",  # seal-apple-touch-icon.png  180 px
 }
 PHOTO_CREDIT = {"author": "", "url": ""}   # from the photo's Freepik page
 BLOB_HOSTS = "https://*.public.blob.vercel-storage.com"
