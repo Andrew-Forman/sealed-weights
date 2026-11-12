@@ -351,7 +351,7 @@ pre.wcmd { margin: 0; padding: 14px 16px; background: #0a0e14; border: 1px solid
       <a href="#replay" data-view="replay">Replay</a>
       <a href="#verify" data-view="verify">Verify</a>
     </nav>
-    <div class="envbadge" id="envbadge"><span class="dot" id="envdot"></span><span id="envtext">Connecting…</span></div>
+    <div class="envbadge" id="envbadge"><span class="dot" id="envdot"></span><span id="envtext">Waiting for the enclave…</span></div>
   </div>
 </header>
 
@@ -418,6 +418,7 @@ pre.wcmd { margin: 0; padding: 14px 16px; background: #0a0e14; border: 1px solid
 </main>
 
 <!-- ======================= LIVE ======================= -->
+<!--LIVE-ONLY-->
 <main id="v-live" class="view">
   <p class="intro">Several parties take turns fine-tuning one shared model inside a confidential GPU. No party sees another's data. Each update to the weights is hashed, scored and signed inside the enclave, so anyone can verify what every contribution changed.</p>
 
@@ -495,6 +496,7 @@ pre.wcmd { margin: 0; padding: 14px 16px; background: #0a0e14; border: 1px solid
 
   <a class="cta" href="#replay">See the recorded run, version by version <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
 </main>
+<!--/LIVE-ONLY-->
 
 <!-- ======================= REPLAY ======================= -->
 <main id="v-replay" class="view rp" hidden>
@@ -574,7 +576,7 @@ pre.wcmd { margin: 0; padding: 14px 16px; background: #0a0e14; border: 1px solid
 
   <p class="contact" hidden></p>
   <div class="ovbtns" id="vfbtns" hidden><a class="sec2" href="#replay">Replay the run</a><a class="sec2" id="vfrepo" href="#" target="_blank" rel="noopener">Code on GitHub</a></div>
-  <a class="cta outline" id="vcta" href="#live">Take a turn on the live model <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+  <!--LIVE-ONLY--><a class="cta outline" id="vcta" href="#live">Use the live model <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a><!--/LIVE-ONLY-->
 </main>
 
 <input type="file" id="runfile" accept="application/json,.json" hidden>
@@ -788,7 +790,7 @@ function badge() {
     const e = LIVE.env || {};
     if (e.mode === "enclave") { txt.textContent = `Tinfoil ${gpuShort(e.gpu)} enclave · attested key${e.release_tag ? " · " + e.release_tag : ""}`; dot.className = "dot on"; }
     else { txt.textContent = "Not attested"; dot.className = "dot"; }
-  } else { txt.textContent = STATIC ? "Loading the recorded run…" : "Connecting…"; dot.className = "dot"; }
+  } else { txt.textContent = STATIC ? "Loading the recorded run…" : "Waiting for the enclave…"; dot.className = "dot"; }
 }
 
 /* ---------- routing ---------- */
@@ -796,7 +798,7 @@ function route() {
   view = (location.hash.slice(1) || "live").split("?")[0];
   if (view === "overview") view = "live";
   if (!["live", "replay", "verify"].includes(view)) view = "live";
-  for (const v of ["live", "replay", "verify"]) $("v-" + v).hidden = v !== view || (v === "live" && STATIC);
+  for (const v of ["live", "replay", "verify"]) { const el = $("v-" + v); if (el) el.hidden = v !== view || (v === "live" && STATIC); }
   $("v-overview").hidden = !(STATIC && view === "live");
   $("envbadge").hidden = STATIC;   // the static pages show the run line in the page
   document.querySelectorAll(".tabs a").forEach((a) => { if (a.dataset.view === view) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current"); });
@@ -857,17 +859,17 @@ function renderPreview() {
   if (key == null) { $("preview").innerHTML = `<span class="muted">${kind === "caesar" ? "Pick a shift from 1 to 25." : "Use each letter a–z exactly once, or press Randomize."}</span>`; return; }
   $("preview").innerHTML = previewWords.map((w) => `<div class="pair"><span class="muted">${esc(spaced(encrypt(w, kind, key)))}</span><span class="muted">→</span><span>${esc(spaced(w))}</span></div>`).join("");
 }
-$("ck").addEventListener("change", () => { if ($("ck").value !== "caesar" && !$("al").value) $("al").value = randomAlphabet(); renderPreview(); });
-$("sh").addEventListener("input", renderPreview);
-$("al").addEventListener("input", renderPreview);
-$("rnd").addEventListener("click", () => { $("al").value = randomAlphabet(); renderPreview(); });
+$("ck")?.addEventListener("change", () => { if ($("ck").value !== "caesar" && !$("al").value) $("al").value = randomAlphabet(); renderPreview(); });
+$("sh")?.addEventListener("input", renderPreview);
+$("al")?.addEventListener("input", renderPreview);
+$("rnd")?.addEventListener("click", () => { $("al").value = randomAlphabet(); renderPreview(); });
 
 async function api(path, body) {
   const r = await fetch(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
   let j = {}; try { j = await r.json(); } catch (e) { /* non-JSON error */ }
   return { ok: r.ok, status: r.status, body: j };
 }
-$("send").addEventListener("click", async () => {
+$("send")?.addEventListener("click", async () => {
   const name = $("nm").value.trim().toLowerCase(), kind = $("ck").value, key = keyOf();
   const msg = $("sendmsg"); msg.className = "status";
   if (!/^[a-z0-9-]{2,16}$/.test(name)) { msg.className = "status err"; msg.textContent = "Name: 2–16 characters of a–z, 0–9 or '-'."; return; }
@@ -960,11 +962,11 @@ function renderLive() {
   const opts = MINE_MEM.filter((m) => m.host === location.host && st.contributors.some((c) => c.name === m.name)).reverse();
   const ohtml = opts.length ? opts.map((m) => `<option value="${esc(m.name)}">${esc(m.name)}</option>`).join("") : `<option value="">(send a key first)</option>`;
   if ($("dskill").dataset.html !== ohtml) { const keep = $("dskill").value; $("dskill").innerHTML = ohtml; $("dskill").dataset.html = ohtml; if (opts.some((m) => m.name === keep)) $("dskill").value = keep; }
-  if (!routReal) $("rout").textContent = `401 · this token can't use ${$("dskill").value || opts[0]?.name || "maya"}'s cipher`;
+  if (!routReal) $("rout").textContent = `401 · this token can't use ${$("dskill").value || opts[0]?.name || "that party"}'s cipher`;
 }
 let routReal = false;   // true once the box shows a real response from the enclave
-$("dskill").addEventListener("change", () => { routReal = false; renderLive(); });
-$("dgo").addEventListener("click", async () => {
+$("dskill")?.addEventListener("change", () => { routReal = false; renderLive(); });
+$("dgo")?.addEventListener("click", async () => {
   const m = MINE_MEM.find((x) => x.name === $("dskill").value && x.host === location.host);
   if (!m) { $("dout").innerHTML = `<span class="muted">Send a key first; your token is kept in this browser.</span>`; return; }
   const text = $("dtext").value.trim() || $("dtext").placeholder;
@@ -973,7 +975,7 @@ $("dgo").addEventListener("click", async () => {
   $("dgo").disabled = false;
   $("dout").innerHTML = r.ok ? `${esc(r.body.plaintext.toUpperCase())} <span class="muted">· v${r.body.version} weights ${esc(short(r.body.weights_sha256))}</span>` : `<span style="color:var(--bad)">${r.status} · ${esc(r.body.detail || "error")}</span>`;
 });
-$("rgo").addEventListener("click", async () => {
+$("rgo")?.addEventListener("click", async () => {
   const name = $("dskill").value; if (!name) return;
   const fake = Array.from(crypto.getRandomValues(new Uint8Array(18)), (b) => b.toString(16).padStart(2, "0")).join("");
   const r = await api("decode", { token: fake, skill: name, ciphertext: $("dtext").value.trim() || "KHOOR" });
@@ -1110,7 +1112,7 @@ function envLine() {
   if (RUN?.sample) return `Made-up numbers · signed with a throwaway key · ${runDate()}`;
   if (RUN) return `Recorded run · ${e.mode === "enclave" ? `Tinfoil ${gpuShort(e.gpu)} enclave${e.release_tag ? " · " + e.release_tag : ""}` : "not attested"} · ${runDate()}`;
   if (LIVE) { const l = LIVE.env || {}; return l.mode === "enclave" ? `Live run · Tinfoil ${gpuShort(l.gpu)} enclave${l.release_tag ? " · " + l.release_tag : ""}` : "Live run · not attested"; }
-  return STATIC ? "Loading the recorded run…" : "Connecting…";
+  return STATIC ? "Loading the recorded run…" : "Waiting for the enclave…";
 }
 function penv(id, download) {
   const html = `<span>${esc(envLine())}</span>${CFG?.preview || RUN?.sample ? `<span class="ovprev">${esc(previewLabel())}</span>` : ""}`
@@ -1297,13 +1299,13 @@ async function poll() {
   render();
 }
 async function boot() {
-  previewWords = shufflePick();
-  $("nm").value = ""; renderPreview();
+  if (!STATIC) { previewWords = shufflePick(); $("nm").value = ""; renderPreview(); }
   if (STATIC) {
     document.querySelector('.tabs a[data-view="live"]').textContent = "Overview";
     document.querySelector('.tabs a[data-view="live"]').href = "#overview";
     $("ovrepo").href = CFG.repo;
-    $("vcta").hidden = true; $("vfbtns").hidden = false; $("vfrepo").href = CFG.repo;
+    if ($("vcta")) $("vcta").hidden = true;
+    $("vfbtns").hidden = false; $("vfrepo").href = CFG.repo;
     {   // phones: the comparison table as one block per question, same text
       const heads = [...document.querySelectorAll(".cmp thead th")].map((th) => th.textContent);
       $("cmpstack").innerHTML = [...document.querySelectorAll(".cmp tbody tr")].map((tr) => {

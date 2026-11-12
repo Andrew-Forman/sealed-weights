@@ -41,6 +41,40 @@ CSP = "; ".join([
 ])
 
 
+def run_line(run):
+    """The Overview badge text for readers without scripts (the page script writes the same)."""
+    import datetime
+    if run.get("sample"):
+        return "Layout sample · made-up numbers, signed with a throwaway key", ""
+    e = run.get("environment") or (run.get("state") or {}).get("env") or {}
+    gpu = (e.get("gpu") or "").replace("NVIDIA", "").split()
+    where = (f"Tinfoil {gpu[0] if gpu else 'GPU'} enclave" + (f" · {e['release_tag']}" if e.get("release_tag") else "")
+             if e.get("mode") == "enclave" else "not attested")
+    t = run.get("saved_at")
+    date = datetime.datetime.strptime(t, "%Y-%m-%dT%H:%M:%SZ").strftime("%b %-d, %Y") if t else ""
+    return f"Recorded run · {where}", date
+
+
+def static_html(html, run=None, no_video=False):
+    """The page for the static site: the live app's markup removed (crawlers and readers without
+    scripts never see it), the first tab named Overview, the Overview shown without scripts, and
+    the empty environment badge hidden (each tab shows the run's line in the page instead)."""
+    parts = re.split(r"<!--LIVE-ONLY-->.*?<!--/LIVE-ONLY-->", html, flags=re.S)
+    assert len(parts) >= 3, "index.html is missing its LIVE-ONLY markers"
+    html = "".join(parts)
+    line, date = run_line(run or {})
+    for old, new in (('<a href="#live" data-view="live">Live</a>', '<a href="#overview" data-view="live">Overview</a>'),
+                     ('<span id="ovenv">Loading the recorded run…</span>', f'<span id="ovenv">{line}</span>'),
+                     ('<span id="ovdate"></span>', f'<span id="ovdate">{date}</span>'),
+                     ('<section class="ovintro">', '<section class="ovintro novideo">' if no_video else '<section class="ovintro">'),
+                     ('<main id="v-overview" class="view ov" hidden>', '<main id="v-overview" class="view ov">'),
+                     ('<div class="envbadge" id="envbadge">', '<div class="envbadge" id="envbadge" hidden>'),
+                     ('<span id="envtext">Waiting for the enclave…</span>', '<span id="envtext"></span>')):
+        assert html.count(old) == 1, old
+        html = html.replace(old, new)
+    return html
+
+
 def vercel_config(indexable):
     headers = [
         {"key": "Content-Security-Policy", "value": CSP},
@@ -165,7 +199,8 @@ def main():
         shutil.copy(og, out / "og.png")
     (out / "vercel.json").write_text(json.dumps(vercel_config(indexable=x.publish), indent=1))
 
-    html = (ROOT / "app" / "static" / "index.html").read_text()
+    html = static_html((ROOT / "app" / "static" / "index.html").read_text(), run,
+                       no_video=x.draft and not x.video)
     assert MARK in html, "index.html is missing the static-config marker"
     tag = "<script>window.SEALED_STATIC = " + json.dumps(cfg).replace("<", "\\u003c") + ";</script>"
     if not x.publish:   # keep previews and drafts out of search engines

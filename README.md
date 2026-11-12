@@ -126,8 +126,8 @@ verified weight mount and exits if that mount is missing; it never downloads a m
    saved checks didn't all pass. Stop the container when you're done; it bills while running.
 
 **The public site** is a Vercel project connected to this repo. Vercel runs
-`python3 build_site.py published/take2-C.json --draft --out site` (install command
-`python3 -m pip install cryptography`, output directory `site`), so the site is built from
+`.venv/bin/python build_site.py published/take2-C.json --draft --out site` (install command
+`python3 -m venv .venv && .venv/bin/pip install cryptography`, output directory `site`), so the site is built from
 this repo and the recorded run in `published/`. The root `vercel.json` sets the security
 headers and, until the public build, `noindex`.
 
@@ -141,7 +141,8 @@ python -m http.server -d site 8090
 
 Tests: `python -m pytest tests/test_datagen.py`, `python tests/test_publish_guard.py`,
 `python tests/test_snapshot.py tests/fixtures/layout-sample.json`, `node tests/test_web.mjs`
-and `python tests/test_app_guard.py`. `tests/e2e.py` trains, so it runs only against the
+`python tests/test_app_guard.py` and `python tests/test_static_page.py` (the built page carries
+no live-app markup or wording, and shows the Overview text without scripts). `tests/e2e.py` trains, so it runs only against the
 enclave.
 
 ## License
