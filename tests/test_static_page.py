@@ -49,9 +49,11 @@ assert not [f for f in tracked if re.search(r"seal|freepik|helgoland", f, re.I)]
 assert not [f for f in Path("app/static").iterdir() if re.search(r"seal", f.name, re.I)], "seal files in app/static"
 
 # with the Blob store configured: the card and the seal come from it, and the credit is shown
-saved = build_site.BRAND_BASE, dict(build_site.PHOTO_CREDIT), build_site.ASSETS, sys.argv
+saved = dict(build_site.BRAND_URLS), dict(build_site.PHOTO_CREDIT), build_site.ASSETS, sys.argv
 try:
-    build_site.BRAND_BASE = "https://abc123.public.blob.vercel-storage.com"
+    blob = "https://abc123.public.blob.vercel-storage.com/"
+    build_site.BRAND_URLS.update({"card": blob + "card-x1.png", "seal": blob + "seal-x2.png", "favicon.ico": blob + "fav-x3.ico",
+                                  "favicon-32.png": blob + "fav32-x4.png", "apple-touch-icon.png": blob + "touch-x5.png"})
     build_site.PHOTO_CREDIT.update(author="someone", url="https://www.freepik.com/free-photo/x")
     o2 = Path(tempfile.mkdtemp()) / "site"
     sys.argv = ["build_site.py", "tests/fixtures/layout-sample.json", "--out", str(o2)]
@@ -59,9 +61,10 @@ try:
     with contextlib.redirect_stdout(io.StringIO()):
         build_site.main()
     h, p4 = (o2 / "index.html").read_text(), (o2 / "404.html").read_text()
-    assert 'content="https://abc123.public.blob.vercel-storage.com/sealed-weights-card.png"' in h
+    assert f'content="{blob}card-x1.png"' in h and f'href="{blob}fav-x3.ico"' in h and f'href="{blob}touch-x5.png"' in h
+    assert f'href="{blob}fav32-x4.png"' in h and 'href="/favicon' not in h
     assert '<p class="credit">Seal photo: image by someone on <a href="https://www.freepik.com/free-photo/x"' in h
-    assert 'src="https://abc123.public.blob.vercel-storage.com/seal-320.png"' in p4 and "on <a href" in p4
+    assert f'src="{blob}seal-x2.png"' in p4 and "on <a href" in p4 and f'href="{blob}fav-x3.ico"' in p4
     build_site.ASSETS = saved[2] + ["no-such-file.png"]
     sys.argv = ["build_site.py", "tests/fixtures/layout-sample.json", "--out", str(Path(tempfile.mkdtemp()) / "site")]
     with contextlib.redirect_stdout(io.StringIO()):
@@ -70,7 +73,7 @@ try:
 except SystemExit as e:
     assert "missing site asset" in str(e), e
 finally:
-    build_site.BRAND_BASE, build_site.ASSETS, sys.argv = saved[0], saved[2], saved[3]
+    build_site.BRAND_URLS.clear(); build_site.BRAND_URLS.update(saved[0]); build_site.ASSETS, sys.argv = saved[2], saved[3]
     build_site.PHOTO_CREDIT.clear(); build_site.PHOTO_CREDIT.update(saved[1])
 print(f"ok   brand files in the built site; a missing one stops the build; 404 is noindex; "
-      "no seal photo files in git; with the Blob store set, card + seal + credit come through")
+      "no seal photo files in git; with the Blob store set, card + seal + seal icons + credit come through")

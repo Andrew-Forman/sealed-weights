@@ -25,14 +25,21 @@ SITE_URL = "https://sealedweights.com"   # for link previews (og:image needs an 
 # Files copied from app/static/ into every built site; a missing one fails the build.
 ASSETS = ["og.png", "favicon.ico", "favicon-32.png", "apple-touch-icon.png", "404.html"]
 
-# The seal photo (Freepik, free license with attribution) is used on the link-preview card and the
-# 404 page. Its license doesn't allow redistributing it, so the files are NOT in this repo: they
-# live in a public Vercel Blob store and the page links to them. Empty = builds leave the photo out
-# (and --publish refuses).
-BRAND_BASE = ""      # e.g. "https://<store-id>.public.blob.vercel-storage.com"
-CARD_FILE, SEAL_FILE = "sealed-weights-card.png", "seal-320.png"
+# The seal photo (Freepik, free license with attribution) is used for the link-preview card, the
+# tab icons and the 404 page. The image files are NOT in this repo: they live in a public Vercel
+# Blob store and the page links to them (the exact URL of each uploaded file). Until every URL and
+# the credit are set, builds use the lock icons and the plain card from app/static and leave the
+# photo out, and --publish refuses.
+BRAND_URLS = {
+    "card": "",                  # sealed-weights-card.png    1200x630 link-preview card
+    "seal": "",                  # seal-320.png               circle for the 404 page
+    "favicon.ico": "",           # seal-favicon.ico           16/32/48 px
+    "favicon-32.png": "",        # seal-favicon-32.png
+    "apple-touch-icon.png": "",  # seal-apple-touch-icon.png  180 px
+}
 PHOTO_CREDIT = {"author": "", "url": ""}   # from the photo's Freepik page
 BLOB_HOSTS = "https://*.public.blob.vercel-storage.com"
+BLOB_URL = re.compile(r"https://[a-z0-9]+\.public\.blob\.vercel-storage\.com/[A-Za-z0-9._-]+")
 
 
 def photo_credit_html():
@@ -44,7 +51,16 @@ def photo_credit_html():
 
 
 def brand_ready():
-    return bool(re.fullmatch(r"https://[a-z0-9]+\.public\.blob\.vercel-storage\.com", BRAND_BASE or "")) and bool(PHOTO_CREDIT.get("url"))
+    return all(BLOB_URL.fullmatch(v or "") for v in BRAND_URLS.values()) and bool(PHOTO_CREDIT.get("url"))
+
+
+def apply_brand(html):
+    """Point the card, the seal and the tab icons at the Blob store; add the credit."""
+    for name in ("favicon.ico", "favicon-32.png", "apple-touch-icon.png"):
+        html = html.replace(f'href="/{name}"', f'href="{BRAND_URLS[name]}"')
+    html = html.replace(f"{SITE_URL}/og.png", BRAND_URLS["card"]).replace("__SEAL_URL__", BRAND_URLS["seal"])
+    html = html.replace("<!--PHOTO-CREDIT-->", f'<p class="credit">{photo_credit_html()}</p>')
+    return html.replace("__PHOTO_CREDIT__", photo_credit_html())
 
 # Security headers for Vercel. The page uses inline styles and scripts and Google Fonts; the
 # video and poster are served from the site itself; Vercel Web Analytics and Speed Insights load
@@ -197,7 +213,7 @@ def main():
         if not re.fullmatch(r"[A-Za-z0-9_]{1,15}", X_HANDLE or ""):
             problems.append("no X handle configured for the contact line (X_HANDLE in build_site.py)")
         if x.publish and not brand_ready():
-            problems.append("the seal photo isn't configured (BRAND_BASE and PHOTO_CREDIT in build_site.py)")
+            problems.append("the seal photo isn't configured (BRAND_URLS and PHOTO_CREDIT in build_site.py)")
         if x.publish and not x.video:
             problems.append("no --video: the published Overview needs the demo video")
         if problems:
@@ -228,8 +244,8 @@ def main():
             sys.exit(f"missing site asset app/static/{name}; not building")
         shutil.copy(src, out / name)
     page404 = (out / "404.html").read_text()
-    if brand_ready():   # the seal and its credit, from the Blob store
-        page404 = page404.replace("__SEAL_URL__", f"{BRAND_BASE}/{SEAL_FILE}").replace("__PHOTO_CREDIT__", photo_credit_html())
+    if brand_ready():   # the seal, its credit and the seal icons, from the Blob store
+        page404 = apply_brand(page404)
     else:
         page404 = re.sub(r'\s*<img src="__SEAL_URL__"[^>]*>', "", page404)
         page404 = re.sub(r'\s*<p class="credit">__PHOTO_CREDIT__</p>', "", page404)
@@ -238,9 +254,8 @@ def main():
 
     html = static_html((ROOT / "app" / "static" / "index.html").read_text(), run,
                        no_video=x.draft and not x.video)
-    if brand_ready():   # link card from the Blob store, photo credit in the footer
-        html = html.replace(f"{SITE_URL}/og.png", f"{BRAND_BASE}/{CARD_FILE}")
-        html = html.replace("<!--PHOTO-CREDIT-->", f'<p class="credit">{photo_credit_html()}</p>')
+    if brand_ready():   # card and tab icons from the Blob store, photo credit in the footer
+        html = apply_brand(html)
     assert MARK in html, "index.html is missing the static-config marker"
     tag = "<script>window.SEALED_STATIC = " + json.dumps(cfg).replace("<", "\\u003c") + ";</script>"
     if not x.publish:   # keep previews and drafts out of search engines
